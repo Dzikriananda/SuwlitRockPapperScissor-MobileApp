@@ -12,18 +12,23 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -53,16 +58,23 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.dzikri.suwlitrockpaperscissor.R
+import com.dzikri.suwlitrockpaperscissor.data.model.ResultOf
 import com.dzikri.suwlitrockpaperscissor.data.viewmodel.LoginViewModel
 import com.dzikri.suwlitrockpaperscissor.ui.theme.lilitaOneFamily
 import com.dzikri.suwlitrockpaperscissor.ui.component.CustomTextField
 
 @Composable
 fun LoginScreen(navController: NavController,viewModel: LoginViewModel = hiltViewModel() ) {
-    val text by viewModel.uiState.collectAsState()
 
-    LaunchedEffect(true) {
-        viewModel.login()
+    val username by viewModel.usernameOrEmailInput.collectAsState()
+    val password by viewModel.passwordInput.collectAsState()
+    val loginState by viewModel.loginResponse.collectAsState()
+
+    if(loginState is ResultOf.Failure){
+        showAlertDialog(
+            onClick = {viewModel.dismissAlertDialog()},
+            message = (loginState as ResultOf.Failure).message ?: "Something went wrong"
+        )
     }
 
     Box(
@@ -94,7 +106,7 @@ fun LoginScreen(navController: NavController,viewModel: LoginViewModel = hiltVie
                Box(
                    modifier = Modifier
                        .fillMaxWidth()
-                       .height(400.dp)
+                       .height(450.dp)
                        .clip(RoundedCornerShape(15.dp, 15.dp, 0.dp, 0.dp))
                        .background(Color.White)
                        .padding(horizontal = 30.dp)
@@ -109,22 +121,42 @@ fun LoginScreen(navController: NavController,viewModel: LoginViewModel = hiltVie
                           modifier = Modifier.padding(0.dp,35.dp,0.dp,30.dp)
                       )
                       LoginTextField(
+                          value = username.text,
                           modifier = Modifier.height(45.dp).fillMaxWidth().border(width = 1.dp, color = Color.Gray, shape = RoundedCornerShape(8.dp)),
-                          placeHolderValue = "Username or Email"
+                          placeHolderValue = "Username or Email",
+                          onChange = { a -> viewModel.onUsernameOrEmailChange(a)},
+                          isError = username.isError,
+                          errorMessage = username.errorMessage
                       )
                       Spacer(modifier = Modifier.height(15.dp))
                       LoginTextField(
+                          value = password.text,
                           modifier = Modifier.height(45.dp).fillMaxWidth().border(width = 1.dp, color = Color.Gray, shape = RoundedCornerShape(8.dp)),
-                          placeHolderValue = "Password"
+                          placeHolderValue = "Password",
+                          onChange = { a -> viewModel.onPasswordChange(a)},
+                          isError = password.isError,
+                          errorMessage = password.errorMessage
                       )
                       Spacer(modifier = Modifier.height(40.dp))
                       Button(
-                          onClick = {},
+                          onClick = {
+                              if(loginState != ResultOf.Loading){
+                                  viewModel.simulateErrorLogin()
+                              }
+                          },
                           shape = RoundedCornerShape(8.dp),
                           modifier = Modifier.fillMaxWidth().height(45.dp),
                           colors = ButtonDefaults.buttonColors(containerColor = Color(0XFF2395d2))
                       ) {
-                          Text("Sign In")
+                          if(loginState == ResultOf.Loading){
+                              CircularProgressIndicator(
+                                  modifier = Modifier.width(30.dp),
+                                  color = MaterialTheme.colorScheme.secondary,
+                                  trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                              )
+                          } else {
+                              Text("Sign In")
+                          }
                       }
                       Spacer(modifier = Modifier.height(20.dp))
                       Text(
@@ -141,27 +173,54 @@ fun LoginScreen(navController: NavController,viewModel: LoginViewModel = hiltVie
         }
     }
 }
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginTextField(
+    value: String,
     modifier: Modifier = Modifier,
-    placeHolderValue: String = ""
+    placeHolderValue: String = "",
+    onChange: (String) -> Unit,
+    isError: Boolean,
+    errorMessage: String,
 ) {
-    var text by remember { mutableStateOf("") }
-
     CustomTextField(
-        value = text,
-        onValueChange = { text = it },
+        value = value,
+        onValueChange = { onChange(it) },
         placeholder = placeHolderValue,
-        modifier = modifier
-            .fillMaxWidth()
-            .height(45.dp)
-            .border(1.dp, Color.Gray, RoundedCornerShape(8.dp))
-            .padding(horizontal = 6.dp)
-
+        isError = isError,
+        borderColor = Color.Gray,
+        borderWidth = 1.dp,
+        shape = RoundedCornerShape(8.dp),
+        errorMessage = errorMessage,
+        modifier = Modifier.fillMaxWidth(),
+        height = 45.dp
     )
 }
 
+@Composable
+fun showAlertDialog(onClick: () -> Unit,message: String) {
+    AlertDialog( // 3
+        onDismissRequest = { // 4
+        },
+        // 5
+        title = { Text(text = "Sign In Failed") },
+        text = { Text(text = message) },
+        confirmButton = { // 6
+            Button(
+                onClick = {
+                    onClick()
+                }
+            ) {
+                Text(
+                    text = "Close",
+                    color = Color.White
+                )
+            }
+        },
+        shape = RoundedCornerShape(8.dp)
+    )
+}
 
 
 
