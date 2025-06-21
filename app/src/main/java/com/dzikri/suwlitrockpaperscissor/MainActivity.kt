@@ -26,7 +26,8 @@ class MainActivity : ComponentActivity() {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                    NavigationStack(modifier = Modifier.padding(
                        PaddingValues(
-                           bottom = innerPadding.calculateBottomPadding()
+//                           bottom = innerPadding.calculateBottomPadding(),
+//                           top = innerPadding.calculateTopPadding()
                        )
                    ))
                 }

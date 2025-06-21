@@ -17,6 +17,7 @@ import com.dzikri.suwlitrockpaperscissor.ui.screen.SplashScreen
 @Composable
 fun NavigationStack(modifier: Modifier = Modifier) {
     val navController = rememberNavController()
+    SetNavBarColor(Color.Transparent)
     NavHost(
         navController = navController,
         startDestination = Screen.Splash.route,

@@ -31,6 +31,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -60,12 +61,16 @@ import com.dzikri.suwlitrockpaperscissor.ui.component.CustomTextField
 fun LoginScreen(navController: NavController,viewModel: LoginViewModel = hiltViewModel() ) {
     val text by viewModel.uiState.collectAsState()
 
+    LaunchedEffect(true) {
+        viewModel.login()
+    }
+
     Box(
         modifier = Modifier.fillMaxSize()
     ){
         BackgroundImage(modifier = Modifier.matchParentSize())
         Text(
-            text = "Suwlit $text",
+            text = "Suwlit",
             fontFamily = lilitaOneFamily,
             fontWeight = FontWeight.Normal,
             color = Color.White,
@@ -152,6 +157,8 @@ fun LoginTextField(
             .fillMaxWidth()
             .height(45.dp)
             .border(1.dp, Color.Gray, RoundedCornerShape(8.dp))
+            .padding(horizontal = 6.dp)
+
     )
 }
 
