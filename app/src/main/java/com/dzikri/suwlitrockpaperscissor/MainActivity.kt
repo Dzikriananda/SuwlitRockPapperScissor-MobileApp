@@ -24,12 +24,14 @@ class MainActivity : ComponentActivity() {
         setContent {
             SuwlitRockPaperScissorTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                   NavigationStack(modifier = Modifier.padding(
-                       PaddingValues(
+                   NavigationStack(
+                       modifier = Modifier.padding( PaddingValues(
 //                           bottom = innerPadding.calculateBottomPadding(),
 //                           top = innerPadding.calculateTopPadding()
-                       )
-                   ))
+                           )
+                        ),
+                        innerPaddingValues = innerPadding
+                   )
                 }
             }
         }

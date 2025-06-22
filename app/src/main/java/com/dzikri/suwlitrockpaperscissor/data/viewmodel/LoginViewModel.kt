@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dzikri.suwlitrockpaperscissor.data.model.InputFieldState
+import com.dzikri.suwlitrockpaperscissor.data.model.LoginData
 import com.dzikri.suwlitrockpaperscissor.data.model.LoginResponse
 import com.dzikri.suwlitrockpaperscissor.data.model.ResultOf
 import com.dzikri.suwlitrockpaperscissor.data.repository.UserRepository
@@ -90,6 +91,15 @@ class LoginViewModel @Inject constructor(
             _loginResponse.value = ResultOf.Loading
             delay(4000)
             _loginResponse.value = ResultOf.Failure("Something went wrong", null)
+        }
+    }
+
+    fun simulateSuccessLogin() {
+        viewModelScope.launch {
+            _loginResponse.value = ResultOf.Loading
+            delay(2000)
+            val dummyResponse: LoginResponse = LoginResponse("success","login success", LoginData("dummy token"))
+            _loginResponse.value = ResultOf.Success(dummyResponse)
         }
     }
 }
