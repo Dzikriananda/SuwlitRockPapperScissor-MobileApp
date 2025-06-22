@@ -1,6 +1,7 @@
 package com.dzikri.suwlitrockpaperscissor.ui.screen
 
 import android.annotation.SuppressLint
+import android.graphics.drawable.Icon
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -22,15 +23,23 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Password
+import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.SegmentedButtonDefaults.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldColors
@@ -71,7 +80,7 @@ fun LoginScreen(navController: NavController,viewModel: LoginViewModel = hiltVie
     val loginState by viewModel.loginResponse.collectAsState()
 
     if(loginState is ResultOf.Failure){
-        showAlertDialog(
+        ShowAlertDialog(
             onClick = {viewModel.dismissAlertDialog()},
             message = (loginState as ResultOf.Failure).message ?: "Something went wrong"
         )
@@ -123,10 +132,13 @@ fun LoginScreen(navController: NavController,viewModel: LoginViewModel = hiltVie
                       LoginTextField(
                           value = username.text,
                           modifier = Modifier.height(45.dp).fillMaxWidth().border(width = 1.dp, color = Color.Gray, shape = RoundedCornerShape(8.dp)),
-                          placeHolderValue = "Username or Email",
+                          placeHolderValue = "Email",
                           onChange = { a -> viewModel.onUsernameOrEmailChange(a)},
                           isError = username.isError,
-                          errorMessage = username.errorMessage
+                          errorMessage = username.errorMessage,
+                          leadingIcon = {
+                              Icon(imageVector = Icons.Filled.Email, contentDescription = "email icon")
+                          }
                       )
                       Spacer(modifier = Modifier.height(15.dp))
                       LoginTextField(
@@ -135,13 +147,17 @@ fun LoginScreen(navController: NavController,viewModel: LoginViewModel = hiltVie
                           placeHolderValue = "Password",
                           onChange = { a -> viewModel.onPasswordChange(a)},
                           isError = password.isError,
-                          errorMessage = password.errorMessage
+                          errorMessage = password.errorMessage,
+                          leadingIcon = {
+                              Icon(imageVector = Icons.Filled.Lock, contentDescription = "password icon")
+                          },
+                          isPassword = true
                       )
                       Spacer(modifier = Modifier.height(40.dp))
                       Button(
                           onClick = {
                               if(loginState != ResultOf.Loading){
-                                  viewModel.simulateErrorLogin()
+                                  viewModel.login()
                               }
                           },
                           shape = RoundedCornerShape(8.dp),
@@ -183,6 +199,9 @@ fun LoginTextField(
     onChange: (String) -> Unit,
     isError: Boolean,
     errorMessage: String,
+    leadingIcon: (@Composable () -> Unit)? = null,
+    trailingIcon: (@Composable () -> Unit)? = null,
+    isPassword: Boolean = false,
 ) {
     CustomTextField(
         value = value,
@@ -194,12 +213,15 @@ fun LoginTextField(
         shape = RoundedCornerShape(8.dp),
         errorMessage = errorMessage,
         modifier = Modifier.fillMaxWidth(),
-        height = 45.dp
+        height = 45.dp,
+        leadingIcon = leadingIcon,
+        trailingIcon = trailingIcon,
+        isPassword = isPassword
     )
 }
 
 @Composable
-fun showAlertDialog(onClick: () -> Unit,message: String) {
+fun ShowAlertDialog(onClick: () -> Unit,message: String) {
     AlertDialog( // 3
         onDismissRequest = { // 4
         },

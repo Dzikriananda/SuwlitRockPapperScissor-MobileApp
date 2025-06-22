@@ -32,6 +32,7 @@ fun SplashScreen(navController: NavController) {
     ){
         BackgroundImage(modifier = Modifier.matchParentSize())
         LogoImage(modifier = Modifier.align(Alignment.Center).size(250.dp))
+
     }
 }
 

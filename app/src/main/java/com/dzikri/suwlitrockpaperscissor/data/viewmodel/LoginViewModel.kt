@@ -7,6 +7,9 @@ import com.dzikri.suwlitrockpaperscissor.data.model.InputFieldState
 import com.dzikri.suwlitrockpaperscissor.data.model.LoginResponse
 import com.dzikri.suwlitrockpaperscissor.data.model.ResultOf
 import com.dzikri.suwlitrockpaperscissor.data.repository.UserRepository
+import com.dzikri.suwlitrockpaperscissor.util.ErrorHandler
+import com.dzikri.suwlitrockpaperscissor.util.StringHelper
+import com.google.gson.Gson
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -30,21 +33,18 @@ class LoginViewModel @Inject constructor(
     val loginResponse: StateFlow<ResultOf<LoginResponse>> = _loginResponse.asStateFlow()
 
     fun onUsernameOrEmailChange(newValue: String) {
-        val isValid = newValue.contains("@")
-        _usernameOrEmailInput.value = InputFieldState(
-            text = newValue,
-            isError = !isValid,
-            errorMessage = if (!isValid) "Invalid email format" else ""
-        )
+        _usernameOrEmailInput.value = StringHelper.validateEmail(newValue)
     }
 
     fun onPasswordChange(newValue: String) {
-        val isValid = newValue.length >= 6
-        _passwordInput.value = InputFieldState(
-            text = newValue,
-            isError = !isValid,
-            errorMessage = if (!isValid) "Password must be at least 6 characters" else ""
-        )
+        _passwordInput.value = StringHelper.validatePassword(newValue)
+    }
+
+    fun validateField() {
+        val currentEmailField = _usernameOrEmailInput.value.text
+        _usernameOrEmailInput.value = StringHelper.validateEmail(currentEmailField)
+        val currentPasswordField = _passwordInput.value.text
+        _passwordInput.value = StringHelper.validatePassword(currentPasswordField)
     }
 
     fun dismissAlertDialog() {
@@ -52,31 +52,35 @@ class LoginViewModel @Inject constructor(
     }
 
     fun login() {
-        viewModelScope.launch {
-            val email = _usernameOrEmailInput.value.text
-            val password = _passwordInput.value.text
-
-            // Optional: pre-check before making request
-            if (_usernameOrEmailInput.value.isError || _passwordInput.value.isError) {
-                return@launch
-            }
-
-            _loginResponse.value = ResultOf.Loading
-
-            val body = mapOf(
-                "email" to email,
-                "password" to password
-            )
-
-            try {
-                val result = repository.login(body)
-                if (result.code() == 201) {
-                    _loginResponse.value = ResultOf.Success(result.body()!!)
-                } else {
-                    _loginResponse.value = ResultOf.Failure(result.message(), null)
+        validateField()
+        if(!_usernameOrEmailInput.value.isError && !_passwordInput.value.isError){
+            viewModelScope.launch {
+                val email = _usernameOrEmailInput.value.text
+                val password = _passwordInput.value.text
+                _loginResponse.value = ResultOf.Loading
+                val body = mapOf(
+                    "email" to email,
+                    "password" to password
+                )
+                try {
+                    val result = repository.login(body)
+                    Log.d("login in LoginViewModel", "body: ${result.body()}")
+                    if (result.code() == 200) {
+                        _loginResponse.value = ResultOf.Success(result.body()!!)
+                    } else {
+                        val errorBody = ErrorHandler.handleLoginError(result)
+                        Log.d("error at login in LoginViewModel", "body: ${errorBody}")
+                        if (result.code() == 404) {
+                            _loginResponse.value = ResultOf.Failure(errorBody.message, null)
+                        } else if (result.code() == 400) {
+                            _loginResponse.value = ResultOf.Failure(errorBody.message, null)
+                        } else {
+                            _loginResponse.value = ResultOf.Failure("Sign in failed, Try again later", null)
+                        }
+                    }
+                } catch (e: Exception) {
+                    _loginResponse.value = ResultOf.Failure(e.message, e)
                 }
-            } catch (e: Exception) {
-                _loginResponse.value = ResultOf.Failure(e.message, e)
             }
         }
     }
