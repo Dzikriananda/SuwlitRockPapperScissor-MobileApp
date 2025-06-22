@@ -71,6 +71,7 @@ import com.dzikri.suwlitrockpaperscissor.data.model.ResultOf
 import com.dzikri.suwlitrockpaperscissor.data.viewmodel.LoginViewModel
 import com.dzikri.suwlitrockpaperscissor.ui.theme.lilitaOneFamily
 import com.dzikri.suwlitrockpaperscissor.ui.component.CustomTextField
+import com.dzikri.suwlitrockpaperscissor.ui.navigation.Screen
 
 @Composable
 fun LoginScreen(navController: NavController,viewModel: LoginViewModel = hiltViewModel() ) {
@@ -179,10 +180,10 @@ fun LoginScreen(navController: NavController,viewModel: LoginViewModel = hiltVie
                           text = "Create a New Account",
                           fontWeight = FontWeight.Normal,
                           color = Color(0XFF2395d2),
-                          modifier = Modifier.align(Alignment.CenterHorizontally).clickable { Log.d("ClickableTest", "dreamybull")
+                          modifier = Modifier.align(Alignment.CenterHorizontally).clickable {
+                              navController.navigate(route = Screen.Register.route)
                           }
                       )
-
                   }
                }
            }
@@ -230,6 +231,7 @@ fun ShowAlertDialog(onClick: () -> Unit,message: String) {
         text = { Text(text = message) },
         confirmButton = { // 6
             Button(
+                shape = RoundedCornerShape(8.dp),
                 onClick = {
                     onClick()
                 }

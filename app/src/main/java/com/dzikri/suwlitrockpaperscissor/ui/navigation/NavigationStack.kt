@@ -12,6 +12,7 @@ import androidx.navigation.navArgument
 import com.dzikri.suwlitrockpaperscissor.ui.component.SetNavBarColor
 import com.dzikri.suwlitrockpaperscissor.ui.navigation.Screen
 import com.dzikri.suwlitrockpaperscissor.ui.screen.LoginScreen
+import com.dzikri.suwlitrockpaperscissor.ui.screen.RegisterScreen
 import com.dzikri.suwlitrockpaperscissor.ui.screen.SplashScreen
 
 @Composable
@@ -28,6 +29,9 @@ fun NavigationStack(modifier: Modifier = Modifier) {
         }
         composable(route = Screen.Login.route) {
             LoginScreen(navController = navController)
+        }
+        composable(route = Screen.Register.route) {
+            RegisterScreen(navController = navController)
         }
     }
 }
