@@ -221,7 +221,7 @@ fun RegisterTextField(
     CustomTextField(
         value = value,
         onValueChange = { onChange(it) },
-        placeholder = placeHolderValue,
+        placeholder = {Text(text = placeHolderValue, fontSize = 17.sp, color = Color.Gray) },
         isError = isError,
         borderColor = Color.Gray,
         borderWidth = 1.dp,

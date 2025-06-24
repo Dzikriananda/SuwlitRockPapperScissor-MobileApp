@@ -29,6 +29,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.Placeholder
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -42,7 +43,7 @@ import androidx.compose.ui.unit.sp
 fun CustomTextField(
     value: String,
     onValueChange: (String) -> Unit,
-    placeholder: String = "",
+//    placeholder: String = "",
     isError: Boolean = false,
     errorMessage: String = "", // ✅ add this
     modifier: Modifier = Modifier,
@@ -50,9 +51,12 @@ fun CustomTextField(
     borderWidth: Dp = 2.dp,
     shape: RoundedCornerShape = RoundedCornerShape(12.dp),
     height : Dp = 45.dp,
+    placeholder: (@Composable () -> Unit)? = null,
     leadingIcon: (@Composable () -> Unit)? = null,
     trailingIcon: (@Composable () -> Unit)? = null,
     isPassword : Boolean = false,
+    horizontalPadding: Dp = 0.dp,
+    textStyle: TextStyle = TextStyle(fontSize = 17.sp, color = Color.Black),
 
     ) {
     val interactionSource = remember { MutableInteractionSource() }
@@ -73,7 +77,7 @@ fun CustomTextField(
         onValueChange = onValueChange,
         interactionSource = interactionSource,
         singleLine = true,
-        textStyle = TextStyle(fontSize = 17.sp, color = Color.Black),
+        textStyle = textStyle,
         modifier = modifier,
         keyboardOptions = keyboardOption,
         visualTransformation = transformation,
@@ -103,9 +107,7 @@ fun CustomTextField(
                         innerTextField()
                     }
                 },
-                placeholder = {
-                    Text(text = placeholder, fontSize = 17.sp, color = Color.Gray)
-                },
+                placeholder = placeholder,
                 supportingText = if (isError && errorMessage.isNotEmpty()) {
                     { Text(errorMessage, color = Color.Red, fontSize = 12.sp) }
                 } else null,
@@ -121,7 +123,7 @@ fun CustomTextField(
                     focusedContainerColor = Color.Transparent,
                     unfocusedContainerColor = Color.Transparent
                 ),
-                contentPadding = PaddingValues(horizontal = 0.dp),
+                contentPadding = PaddingValues(horizontal = horizontalPadding),
                 container = {
                     OutlinedTextFieldDefaults.ContainerBox(
                         enabled = true,

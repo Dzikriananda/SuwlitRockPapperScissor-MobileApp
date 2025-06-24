@@ -80,7 +80,9 @@ fun LoginScreen(navController: NavController,viewModel: LoginViewModel = hiltVie
             fontWeight = FontWeight.Normal,
             color = Color.White,
             fontSize = 70.sp,
-            modifier = Modifier.align(Alignment.TopCenter).padding(0.dp,80.dp,0.dp,0.dp)
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .padding(0.dp, 80.dp, 0.dp, 0.dp)
         )
         Box(
             modifier = Modifier
@@ -115,7 +117,14 @@ fun LoginScreen(navController: NavController,viewModel: LoginViewModel = hiltVie
                       )
                       LoginTextField(
                           value = username.text,
-                          modifier = Modifier.height(45.dp).fillMaxWidth().border(width = 1.dp, color = Color.Gray, shape = RoundedCornerShape(8.dp)),
+                          modifier = Modifier
+                              .height(45.dp)
+                              .fillMaxWidth()
+                              .border(
+                                  width = 1.dp,
+                                  color = Color.Gray,
+                                  shape = RoundedCornerShape(8.dp)
+                              ),
                           placeHolderValue = "Email",
                           onChange = { a -> viewModel.onUsernameOrEmailChange(a)},
                           isError = username.isError,
@@ -127,7 +136,14 @@ fun LoginScreen(navController: NavController,viewModel: LoginViewModel = hiltVie
                       Spacer(modifier = Modifier.height(15.dp))
                       LoginTextField(
                           value = password.text,
-                          modifier = Modifier.height(45.dp).fillMaxWidth().border(width = 1.dp, color = Color.Gray, shape = RoundedCornerShape(8.dp)),
+                          modifier = Modifier
+                              .height(45.dp)
+                              .fillMaxWidth()
+                              .border(
+                                  width = 1.dp,
+                                  color = Color.Gray,
+                                  shape = RoundedCornerShape(8.dp)
+                              ),
                           placeHolderValue = "Password",
                           onChange = { a -> viewModel.onPasswordChange(a)},
                           isError = password.isError,
@@ -145,7 +161,9 @@ fun LoginScreen(navController: NavController,viewModel: LoginViewModel = hiltVie
                               }
                           },
                           shape = RoundedCornerShape(8.dp),
-                          modifier = Modifier.fillMaxWidth().height(45.dp),
+                          modifier = Modifier
+                              .fillMaxWidth()
+                              .height(45.dp),
                           colors = ButtonDefaults.buttonColors(containerColor = Color(0XFF2395d2))
                       ) {
                           if(loginState == ResultOf.Loading){
@@ -163,9 +181,11 @@ fun LoginScreen(navController: NavController,viewModel: LoginViewModel = hiltVie
                           text = "Create a New Account",
                           fontWeight = FontWeight.Normal,
                           color = Color(0XFF2395d2),
-                          modifier = Modifier.align(Alignment.CenterHorizontally).clickable {
-                              navController.navigate(route = Screen.Register.route)
-                          }
+                          modifier = Modifier
+                              .align(Alignment.CenterHorizontally)
+                              .clickable {
+                                  navController.navigate(route = Screen.Register.route)
+                              }
                       )
                   }
                }
@@ -190,7 +210,7 @@ fun LoginTextField(
     CustomTextField(
         value = value,
         onValueChange = { onChange(it) },
-        placeholder = placeHolderValue,
+        placeholder = { Text(text = placeHolderValue, fontSize = 17.sp, color = Color.Gray) },
         isError = isError,
         borderColor = Color.Gray,
         borderWidth = 1.dp,
