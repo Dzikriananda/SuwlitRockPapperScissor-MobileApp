@@ -1,5 +1,6 @@
     package com.dzikri.suwlitrockpaperscissor.ui.screen
 
+    import androidx.activity.compose.BackHandler
     import androidx.compose.foundation.Image
     import androidx.compose.foundation.background
     import androidx.compose.foundation.border
@@ -33,6 +34,8 @@
     import androidx.compose.material3.IconButton
     import androidx.compose.material3.MaterialTheme
     import androidx.compose.material3.ModalBottomSheet
+    import androidx.compose.material3.ModalBottomSheetProperties
+    import androidx.compose.material3.SheetValue
     import androidx.compose.material3.Text
     import androidx.compose.material3.rememberModalBottomSheetState
     import androidx.compose.runtime.Composable
@@ -45,6 +48,7 @@
     import androidx.compose.ui.Modifier
     import androidx.compose.ui.draw.clip
     import androidx.compose.ui.graphics.Color
+    import androidx.compose.ui.input.pointer.pointerInput
     import androidx.compose.ui.layout.ContentScale
     import androidx.compose.ui.res.painterResource
     import androidx.compose.ui.text.TextStyle
@@ -52,6 +56,7 @@
     import androidx.compose.ui.tooling.preview.Preview
     import androidx.compose.ui.unit.dp
     import androidx.compose.ui.unit.sp
+    import androidx.compose.ui.window.SecureFlagPolicy
     import androidx.hilt.navigation.compose.hiltViewModel
     import androidx.lifecycle.compose.collectAsStateWithLifecycle
     import androidx.navigation.NavController
@@ -69,6 +74,7 @@
     fun HomeScreen(navController: NavController,innerPaddingValues: PaddingValues,viewModel: HomeViewModel = hiltViewModel()){
 
 
+
         Box(
             modifier = Modifier.fillMaxSize()
         ){
@@ -78,7 +84,6 @@
                 .padding(horizontal = 25.dp)){
                 AvatarImage()
                 PlayComponent(viewModel = viewModel)
-
             }
         }
     }
@@ -118,12 +123,10 @@
                     1 -> PlayComponentOption(viewModel = viewModel,gameMode = GameMode.VsBot)
                 }
             }
-
-            // Indicator (optional)
             Row(
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
-                    .padding(top = 12.dp),
+                    .padding(top = 2.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 repeat(2) { index ->
@@ -143,32 +146,43 @@
     @Composable
     @OptIn(ExperimentalMaterial3Api::class)
     fun PlayComponentOption(gameMode: GameMode,viewModel: HomeViewModel) {
+        val isJoiningRoom = viewModel.isJoiningRoom.collectAsStateWithLifecycle()
 
-        val sheetState = rememberModalBottomSheetState()
+        val sheetState =  rememberModalBottomSheetState(skipPartiallyExpanded = true, confirmValueChange = { newState ->
+            newState != SheetValue.Hidden //  Stop bottom sheet from hiding on outside press
+        })
+
         val scope = rememberCoroutineScope()
         var showBottomSheet by remember { mutableStateOf(false) }
         val player2: String = if (gameMode == GameMode.Multiplayer) "Player 2" else "Bot"
         val buttonText: String = if (gameMode == GameMode.Multiplayer) "Multiplayer" else "Vs Bot"
 
 
-        if (showBottomSheet) {
-            ModalBottomSheet(
-                onDismissRequest = {
-                    showBottomSheet = false
-                },
-                sheetState = sheetState,
-            ) {
-                Box(modifier = Modifier
-                    .height(300.dp)
+            if (showBottomSheet) {
+                ModalBottomSheet(
+                    onDismissRequest = {
+                        showBottomSheet = false
+                    },
+                    sheetState = sheetState,
+                    properties = ModalBottomSheetProperties(
+                        securePolicy = SecureFlagPolicy.SecureOn,
+                        shouldDismissOnBackPress = false
+                    )
+                ) {
+
+                    Box(modifier = Modifier
+                        .height(300.dp)
                     .fillMaxWidth()
                     .padding(horizontal = 20.dp, vertical = 0.dp)){
                     IconButton(
                         onClick = {
-                            scope.launch { sheetState.hide() }.invokeOnCompletion {
-                                if (!sheetState.isVisible) {
+                            if(!isJoiningRoom.value) {
+                                scope.launch {
+                                    sheetState.hide()
                                     showBottomSheet = false
                                 }
                             }
+
                         } ) {
                         Icon(painter = painterResource(R.drawable.close_button),contentDescription = "close button")
                     }
@@ -185,7 +199,7 @@
             modifier = Modifier
                 .fillMaxWidth()
                 .height(400.dp)
-                .clip(RoundedCornerShape(8.dp))
+                .clip(RoundedCornerShape(16.dp))
                 .background(Color.White)
         ) {
             PlayerSide(
@@ -340,6 +354,8 @@
 @Composable
 fun MultiplayerModalComponent(viewModel: HomeViewModel) {
     val roomIdInput = viewModel.roomIdInput.collectAsStateWithLifecycle()
+    val isJoiningRoom = viewModel.isJoiningRoom.collectAsStateWithLifecycle()
+
 
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -355,19 +371,27 @@ fun MultiplayerModalComponent(viewModel: HomeViewModel) {
         Spacer(modifier = Modifier.height(20.dp))
         Button(
             onClick = {
+                viewModel.createNewRoom()
 
             },
             shape = RoundedCornerShape(8.dp),
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(containerColor = Color(0XFF2395d2))
         ) {
-            Text(
-                text = "New Room",
-                fontFamily = lilitaOneFamily,
-                fontWeight = FontWeight.Normal,
-                color = Color.White,
-                fontSize = 25.sp,
-            )
+            if(isJoiningRoom.value  == true){
+                CircularProgressIndicator(
+                    modifier = Modifier.width(30.dp),
+                    color = MaterialTheme.colorScheme.secondary,
+                    trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                )
+            } else {
+                Text(
+                    text = "New Room",
+                    fontFamily = lilitaOneFamily,
+                    fontWeight = FontWeight.Normal,
+                    color = Color.White,
+                    fontSize = 25.sp,
+                )            }
         }
         Spacer(modifier = Modifier.height(10.dp))
         Text(

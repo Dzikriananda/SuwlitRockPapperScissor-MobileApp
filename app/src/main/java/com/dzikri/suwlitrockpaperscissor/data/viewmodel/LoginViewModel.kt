@@ -33,6 +33,12 @@ class LoginViewModel @Inject constructor(
     private val _loginResponse = MutableStateFlow<ResultOf<LoginResponse>>(ResultOf.Started)
     val loginResponse: StateFlow<ResultOf<LoginResponse>> = _loginResponse.asStateFlow()
 
+    fun resetLoginState() {
+        _usernameOrEmailInput.value = InputFieldState()
+        _passwordInput.value = InputFieldState()
+        _loginResponse.value = ResultOf.Started
+    }
+
     fun onUsernameOrEmailChange(newValue: String) {
         _usernameOrEmailInput.value = StringHelper.validateEmail(newValue)
     }

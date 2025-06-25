@@ -66,6 +66,7 @@ fun LoginScreen(navController: NavController,viewModel: LoginViewModel = hiltVie
 
     LaunchedEffect(loginState) {
         if(loginState is ResultOf.Success){
+            viewModel.resetLoginState()
             navController.navigate(route = Screen.Home.route)
         }
     }
