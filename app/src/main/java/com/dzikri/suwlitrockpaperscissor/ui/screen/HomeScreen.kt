@@ -1,5 +1,6 @@
     package com.dzikri.suwlitrockpaperscissor.ui.screen
 
+    import android.util.Log
     import androidx.activity.compose.BackHandler
     import androidx.compose.foundation.Image
     import androidx.compose.foundation.background
@@ -39,6 +40,7 @@
     import androidx.compose.material3.Text
     import androidx.compose.material3.rememberModalBottomSheetState
     import androidx.compose.runtime.Composable
+    import androidx.compose.runtime.LaunchedEffect
     import androidx.compose.runtime.getValue
     import androidx.compose.runtime.mutableStateOf
     import androidx.compose.runtime.remember
@@ -67,11 +69,21 @@
     import com.dzikri.suwlitrockpaperscissor.data.viewmodel.HomeViewModel
     import com.dzikri.suwlitrockpaperscissor.ui.component.BackgroundImage
     import com.dzikri.suwlitrockpaperscissor.ui.component.CustomTextField
+    import com.dzikri.suwlitrockpaperscissor.ui.navigation.Screen
     import com.dzikri.suwlitrockpaperscissor.ui.theme.lilitaOneFamily
     import kotlinx.coroutines.launch
 
     @Composable
     fun HomeScreen(navController: NavController,innerPaddingValues: PaddingValues,viewModel: HomeViewModel = hiltViewModel()){
+
+        val joinRoomStatus by viewModel.isJoiningRoom.collectAsStateWithLifecycle()
+
+        LaunchedEffect(joinRoomStatus) {
+            if(joinRoomStatus) {
+                Log.d("tagg", "my Message")
+                navController.navigate(route = Screen.Game.route)
+            }
+        }
 
 
 
@@ -156,7 +168,6 @@
         var showBottomSheet by remember { mutableStateOf(false) }
         val player2: String = if (gameMode == GameMode.Multiplayer) "Player 2" else "Bot"
         val buttonText: String = if (gameMode == GameMode.Multiplayer) "Multiplayer" else "Vs Bot"
-
 
             if (showBottomSheet) {
                 ModalBottomSheet(

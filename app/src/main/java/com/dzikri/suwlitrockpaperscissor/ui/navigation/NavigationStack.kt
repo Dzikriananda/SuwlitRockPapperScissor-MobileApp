@@ -12,6 +12,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.dzikri.suwlitrockpaperscissor.ui.component.SetNavBarColor
 import com.dzikri.suwlitrockpaperscissor.ui.navigation.Screen
+import com.dzikri.suwlitrockpaperscissor.ui.screen.GameScreen
 import com.dzikri.suwlitrockpaperscissor.ui.screen.HomeScreen
 import com.dzikri.suwlitrockpaperscissor.ui.screen.LoginScreen
 import com.dzikri.suwlitrockpaperscissor.ui.screen.RegisterScreen
@@ -24,7 +25,7 @@ fun NavigationStack(modifier: Modifier = Modifier,innerPaddingValues: PaddingVal
     NavHost(
         navController = navController,
         startDestination = Screen.Splash.route,
-        modifier = modifier // ✅ apply innerPadding here
+        modifier = modifier
     ) {
         composable(route = Screen.Splash.route) {
             SplashScreen(navController = navController)
@@ -37,6 +38,9 @@ fun NavigationStack(modifier: Modifier = Modifier,innerPaddingValues: PaddingVal
         }
         composable(route = Screen.Home.route) {
             HomeScreen(navController = navController,innerPaddingValues = innerPaddingValues)
+        }
+        composable(route = Screen.Game.route) {
+            GameScreen(innerPaddingValues = innerPaddingValues)
         }
     }
 }

@@ -3,6 +3,7 @@ package com.dzikri.suwlitrockpaperscissor.data.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dzikri.suwlitrockpaperscissor.data.model.InputFieldState
+import com.dzikri.suwlitrockpaperscissor.data.network.WebSocketInstance
 import com.dzikri.suwlitrockpaperscissor.data.repository.UserRepository
 import com.dzikri.suwlitrockpaperscissor.util.StringHelper
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -31,9 +32,9 @@ class HomeViewModel @Inject constructor(
     fun createNewRoom() {
         if (!_isJoiningRoom.value) {
             viewModelScope.launch {
-                _isJoiningRoom.value = true
-                delay(3000)
-                _isJoiningRoom.value = false
+//                _isJoiningRoom.value = true
+//                delay(3000)
+//                _isJoiningRoom.value = false
             }
         }
     }

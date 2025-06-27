@@ -1,5 +1,6 @@
 package com.dzikri.suwlitrockpaperscissor.ui.screen
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -56,6 +57,7 @@ fun LoginScreen(navController: NavController,viewModel: LoginViewModel = hiltVie
     val username by viewModel.usernameOrEmailInput.collectAsState()
     val password by viewModel.passwordInput.collectAsState()
     val loginState by viewModel.loginResponse.collectAsState()
+    val tokenState = viewModel.tokenState.collectAsState()
 
     if(loginState is ResultOf.Failure){
         ShowAlertDialog(
@@ -158,7 +160,7 @@ fun LoginScreen(navController: NavController,viewModel: LoginViewModel = hiltVie
                       Button(
                           onClick = {
                               if(loginState != ResultOf.Loading){
-                                  viewModel.simulateSuccessLogin()
+                                  viewModel.login()
                               }
                           },
                           shape = RoundedCornerShape(8.dp),

@@ -7,5 +7,8 @@ data class LoginResponse(
 )
 
 data class LoginData(
+    val userId: String,
+    val username: String,
+    val email: String,
     val token: String,
 )

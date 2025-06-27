@@ -43,6 +43,10 @@ android {
 
 dependencies {
 
+    implementation("org.hildan.krossbow:krossbow-stomp-core:7.0.0")
+    implementation("org.hildan.krossbow:krossbow-websocket-builtin:7.0.0")
+    implementation("org.hildan.krossbow:krossbow-websocket-okhttp:7.0.0")
+
 
     val hiltVersion = "2.56"
     implementation("com.google.dagger:hilt-android:$hiltVersion")
@@ -68,6 +72,9 @@ dependencies {
     val compose_version = "1.7.0"
     implementation ("androidx.compose.material:material-icons-extended:$compose_version")
 
+    implementation(libs.androidx.datastore)
+    implementation(libs.androidx.datastore.preferences)
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -76,6 +83,8 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+
+
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

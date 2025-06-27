@@ -7,6 +7,7 @@ import com.dzikri.suwlitrockpaperscissor.data.model.InputFieldState
 import com.dzikri.suwlitrockpaperscissor.data.model.LoginData
 import com.dzikri.suwlitrockpaperscissor.data.model.LoginResponse
 import com.dzikri.suwlitrockpaperscissor.data.model.ResultOf
+import com.dzikri.suwlitrockpaperscissor.data.model.UserPreferences
 import com.dzikri.suwlitrockpaperscissor.data.repository.UserRepository
 import com.dzikri.suwlitrockpaperscissor.util.ErrorHandler
 import com.dzikri.suwlitrockpaperscissor.util.StringHelper
@@ -18,6 +19,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
@@ -73,6 +77,11 @@ class LoginViewModel @Inject constructor(
                     val result = repository.login(body)
                     Log.d("login in LoginViewModel", "body: ${result.body()}")
                     if (result.code() == 200) {
+                        val token = result.body()!!.data!!.token
+                        val email = result.body()!!.data!!.email
+                        val userId = result.body()!!.data!!.token
+                        val userName = result.body()!!.data!!.username
+                        repository.saveUserSession(token,email,userName,userId)
                         _loginResponse.value = ResultOf.Success(result.body()!!)
                     } else {
                         val errorBody = ErrorHandler.handleLoginError(result)
@@ -86,7 +95,7 @@ class LoginViewModel @Inject constructor(
                         }
                     }
                 } catch (e: Exception) {
-                    _loginResponse.value = ResultOf.Failure(e.message, e)
+                    _loginResponse.value = ErrorHandler.handleLoginEndpointHitError(e)
                 }
             }
         }
@@ -99,14 +108,23 @@ class LoginViewModel @Inject constructor(
             _loginResponse.value = ResultOf.Failure("Something went wrong", null)
         }
     }
+//
+//    fun simulateSuccessLogin() {
+//        viewModelScope.launch {
+//            _loginResponse.value = ResultOf.Loading
+//            delay(2000)
+//            repository.saveToken("mas amba abdul toqum")
+//            val dummyResponse: LoginResponse = LoginResponse("success","login success", LoginData("dummy token"))
+//            _loginResponse.value = ResultOf.Success(dummyResponse)
+//        }
+//    }
 
-    fun simulateSuccessLogin() {
-        viewModelScope.launch {
-            _loginResponse.value = ResultOf.Loading
-            delay(2000)
-            val dummyResponse: LoginResponse = LoginResponse("success","login success", LoginData("dummy token"))
-            _loginResponse.value = ResultOf.Success(dummyResponse)
-        }
-    }
+    val tokenState: StateFlow<UserPreferences> = repository.currentToken.map {
+        token -> UserPreferences(token)
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = UserPreferences("unknown")
+    )
 }
 
