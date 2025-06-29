@@ -79,7 +79,7 @@ class LoginViewModel @Inject constructor(
                     if (result.code() == 200) {
                         val token = result.body()!!.data!!.token
                         val email = result.body()!!.data!!.email
-                        val userId = result.body()!!.data!!.token
+                        val userId = result.body()!!.data!!.userId
                         val userName = result.body()!!.data!!.username
                         repository.saveUserSession(token,email,userName,userId)
                         _loginResponse.value = ResultOf.Success(result.body()!!)
@@ -100,31 +100,5 @@ class LoginViewModel @Inject constructor(
             }
         }
     }
-
-    fun simulateErrorLogin() {
-        viewModelScope.launch {
-            _loginResponse.value = ResultOf.Loading
-            delay(4000)
-            _loginResponse.value = ResultOf.Failure("Something went wrong", null)
-        }
-    }
-//
-//    fun simulateSuccessLogin() {
-//        viewModelScope.launch {
-//            _loginResponse.value = ResultOf.Loading
-//            delay(2000)
-//            repository.saveToken("mas amba abdul toqum")
-//            val dummyResponse: LoginResponse = LoginResponse("success","login success", LoginData("dummy token"))
-//            _loginResponse.value = ResultOf.Success(dummyResponse)
-//        }
-//    }
-
-    val tokenState: StateFlow<UserPreferences> = repository.currentToken.map {
-        token -> UserPreferences(token)
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = UserPreferences("unknown")
-    )
 }
 

@@ -57,7 +57,6 @@ fun LoginScreen(navController: NavController,viewModel: LoginViewModel = hiltVie
     val username by viewModel.usernameOrEmailInput.collectAsState()
     val password by viewModel.passwordInput.collectAsState()
     val loginState by viewModel.loginResponse.collectAsState()
-    val tokenState = viewModel.tokenState.collectAsState()
 
     if(loginState is ResultOf.Failure){
         ShowAlertDialog(

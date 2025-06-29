@@ -71,12 +71,14 @@
     import com.dzikri.suwlitrockpaperscissor.ui.component.CustomTextField
     import com.dzikri.suwlitrockpaperscissor.ui.navigation.Screen
     import com.dzikri.suwlitrockpaperscissor.ui.theme.lilitaOneFamily
+    import com.dzikri.suwlitrockpaperscissor.util.StringHelper
     import kotlinx.coroutines.launch
 
     @Composable
     fun HomeScreen(navController: NavController,innerPaddingValues: PaddingValues,viewModel: HomeViewModel = hiltViewModel()){
 
         val joinRoomStatus by viewModel.isJoiningRoom.collectAsStateWithLifecycle()
+
 
         LaunchedEffect(joinRoomStatus) {
             if(joinRoomStatus) {
@@ -95,7 +97,7 @@
                 .padding(innerPaddingValues)
                 .padding(horizontal = 25.dp)){
                 AvatarImage()
-                PlayComponent(viewModel = viewModel)
+                PlayComponent(viewModel = viewModel,navController = navController)
             }
         }
     }
@@ -118,7 +120,7 @@
     }
 
     @Composable
-    fun PlayComponent(viewModel: HomeViewModel) {
+    fun PlayComponent(viewModel: HomeViewModel,navController: NavController) {
         val pagerState = rememberPagerState(pageCount = { 2 })
 
         Column(modifier = Modifier.fillMaxWidth()) {
@@ -131,8 +133,8 @@
                 flingBehavior = PagerDefaults.flingBehavior(state = pagerState),
             ) { page ->
                 when (page) {
-                    0 -> PlayComponentOption(viewModel = viewModel,gameMode = GameMode.Multiplayer)
-                    1 -> PlayComponentOption(viewModel = viewModel,gameMode = GameMode.VsBot)
+                    0 -> PlayComponentOption(viewModel = viewModel,gameMode = GameMode.Multiplayer,navController = navController)
+                    1 -> PlayComponentOption(viewModel = viewModel,gameMode = GameMode.VsBot, navController = navController)
                 }
             }
             Row(
@@ -157,7 +159,7 @@
 
     @Composable
     @OptIn(ExperimentalMaterial3Api::class)
-    fun PlayComponentOption(gameMode: GameMode,viewModel: HomeViewModel) {
+    fun PlayComponentOption(gameMode: GameMode,viewModel: HomeViewModel,navController: NavController) {
         val isJoiningRoom = viewModel.isJoiningRoom.collectAsStateWithLifecycle()
 
         val sheetState =  rememberModalBottomSheetState(skipPartiallyExpanded = true, confirmValueChange = { newState ->
@@ -168,6 +170,15 @@
         var showBottomSheet by remember { mutableStateOf(false) }
         val player2: String = if (gameMode == GameMode.Multiplayer) "Player 2" else "Bot"
         val buttonText: String = if (gameMode == GameMode.Multiplayer) "Multiplayer" else "Vs Bot"
+
+        fun closeBottomSheet() {
+            if(!isJoiningRoom.value) {
+                scope.launch {
+                    sheetState.hide()
+                    showBottomSheet = false
+                }
+            }
+        }
 
             if (showBottomSheet) {
                 ModalBottomSheet(
@@ -183,21 +194,12 @@
 
                     Box(modifier = Modifier
                         .height(300.dp)
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 0.dp)){
-                    IconButton(
-                        onClick = {
-                            if(!isJoiningRoom.value) {
-                                scope.launch {
-                                    sheetState.hide()
-                                    showBottomSheet = false
-                                }
-                            }
-
-                        } ) {
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp, vertical = 0.dp)){
+                    IconButton(onClick = { closeBottomSheet() }) {
                         Icon(painter = painterResource(R.drawable.close_button),contentDescription = "close button")
                     }
-                    if(gameMode == GameMode.Multiplayer) MultiplayerModalComponent(viewModel = viewModel) else VsBotModalComponent()
+                    if(gameMode == GameMode.Multiplayer) MultiplayerModalComponent(viewModel = viewModel, navController = navController,onJoin = { closeBottomSheet() }) else VsBotModalComponent()
 
 
                 }
@@ -363,7 +365,7 @@
     }
 
 @Composable
-fun MultiplayerModalComponent(viewModel: HomeViewModel) {
+fun MultiplayerModalComponent(viewModel: HomeViewModel,navController: NavController,onJoin: () -> Unit) {
     val roomIdInput = viewModel.roomIdInput.collectAsStateWithLifecycle()
     val isJoiningRoom = viewModel.isJoiningRoom.collectAsStateWithLifecycle()
 
@@ -383,6 +385,8 @@ fun MultiplayerModalComponent(viewModel: HomeViewModel) {
         Button(
             onClick = {
                 viewModel.createNewRoom()
+                onJoin.invoke()
+                navController.navigate(route = Screen.Game.route)
 
             },
             shape = RoundedCornerShape(8.dp),

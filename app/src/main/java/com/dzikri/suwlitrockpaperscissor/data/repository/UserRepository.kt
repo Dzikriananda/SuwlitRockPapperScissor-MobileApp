@@ -1,5 +1,6 @@
 package com.dzikri.suwlitrockpaperscissor.data.repository
 
+import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
@@ -54,18 +55,17 @@ class UserRepository @Inject constructor(
         preferences[EMAIL] ?: "Unknown"
     }
 
+    suspend fun deleteUserSession() {
+        dataStore.edit { preferences ->
+            preferences.remove(TOKEN)
+            preferences.remove(EMAIL)
+            preferences.remove(USERNAME)
+            preferences.remove(USERID)
+        }
+    }
 
 
 
-//    val currentToken: Flow<String> =
-//        dataStore.data.map { preferences ->
-//            preferences[TOKEN] ?: "Unknown"
-//        }
-//
-//    suspend fun saveToken(token: String) {
-//        dataStore.edit { preferences ->
-//            preferences[TOKEN] = token
-//        }
-//    }
+
 
 }

@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 
@@ -23,10 +24,9 @@ class SplashViewModel @Inject constructor(val userRepository: UserRepository): V
 
     fun checkIfUserIsLoggedIn() {
         viewModelScope.launch {
-            userRepository.currentToken.collect { token ->
-                Log.d("SplashViewModel", "Token: $token")
-                _isLoggedIn.value = token != "Unknown" && token.isNotBlank()
-            }
+            val token = userRepository.currentToken.first()
+            Log.d("SplashViewModel", "Token: $token")
+            _isLoggedIn.value = token != "Unknown" && token.isNotBlank()
         }
     }
 

@@ -39,8 +39,15 @@ fun NavigationStack(modifier: Modifier = Modifier,innerPaddingValues: PaddingVal
         composable(route = Screen.Home.route) {
             HomeScreen(navController = navController,innerPaddingValues = innerPaddingValues)
         }
-        composable(route = Screen.Game.route) {
-            GameScreen(innerPaddingValues = innerPaddingValues)
+        composable(
+            route = Screen.Game.route + "?roomId={roomId}",
+            arguments = listOf(
+                navArgument("roomId"){
+                    type = NavType.StringType
+                    nullable = true
+                }
+            )){
+            GameScreen(navController = navController, innerPaddingValues = innerPaddingValues,roomId = it.arguments?.getString("roomId"))
         }
     }
 }
