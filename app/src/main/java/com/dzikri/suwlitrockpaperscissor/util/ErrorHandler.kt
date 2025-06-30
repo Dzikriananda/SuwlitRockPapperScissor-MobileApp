@@ -13,6 +13,8 @@ import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 
 object ErrorHandler {
+
+    //Must do this because if result code not 200, retrofit treat it as failure/exception
     fun handleLoginError(result: Response<*>): LoginResponse {
         val gson = Gson()
         val errorBody = result.errorBody()?.string()
@@ -20,6 +22,7 @@ object ErrorHandler {
         return loginErrorResponse
     }
 
+    //Must do this because if result code not 200, retrofit treat it as failure/exception
     fun handleRegisterError(result: Response<*>): RegisterResponse {
         val gson = Gson()
         val errorBody = result.errorBody()?.string()
@@ -27,7 +30,7 @@ object ErrorHandler {
         return registerErrorResponse
     }
 
-    fun handleLoginEndpointHitError(e: Exception): ResultOf.Failure {
+    fun handleAuthEndpointHitError(e: Exception): ResultOf.Failure {
         val message = when (e) {
             is SocketTimeoutException -> "Connection timed out. Please try again."
             is UnknownHostException -> "No internet connection."
@@ -41,7 +44,6 @@ object ErrorHandler {
 
     fun handleWsConnectionError(e: Exception): ResultOf.Failure {
         var message = e.message ?: ""
-
         when {
             "404" in message -> {
                 Log.d("WebSocket", "Error: 404 Not Found — likely wrong URL or credentials.")
@@ -50,6 +52,10 @@ object ErrorHandler {
             "403" in message -> {
                 Log.d("WebSocket", "Error: 404 Not Found — likely wrong URL or credentials.")
                 message = "Invalid/expired token. Please log in again"
+            }
+            "Couldn't" in message ->  {
+                Log.d("WebSocket", "Error: No internet Connection")
+                message = "No Internet Connection"
             }
             else -> Log.d("WebSocket", "Unknown error: ${e::class.simpleName} - $message")
         }

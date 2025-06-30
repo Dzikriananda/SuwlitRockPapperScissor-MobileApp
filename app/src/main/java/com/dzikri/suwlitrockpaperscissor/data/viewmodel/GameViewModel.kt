@@ -45,9 +45,11 @@ class GameViewModel @Inject constructor(private val gameRepository: GameReposito
                 subscribeToGameStartingStatus()
                 gameRepository.createRoom(userID)
             } catch (exception: Exception) {
+                Log.d("error while connecting ws",exception.toString())
                 val errResult = ErrorHandler.handleWsConnectionError(exception)
                 _gameStartingStatus.value = errResult
-
+                clearJob()
+                //TODO SAAT EXCEPTION TIDAK ADA INTERNET MASIH ADA MESSAGE "A resource failed to call close."
             }
         }
     }
@@ -59,7 +61,6 @@ class GameViewModel @Inject constructor(private val gameRepository: GameReposito
         val collectionStarted = CompletableDeferred<Unit>()
 
         gameStartingJob = viewModelScope.launch {
-            Log.d("gameviewmodel", "starting gamestartingjob")
             collectionStarted.complete(Unit) // Notify collection has started
 
             flow.collect { msg ->
@@ -74,11 +75,10 @@ class GameViewModel @Inject constructor(private val gameRepository: GameReposito
 
 
     fun clearJob() {
-        Log.d("tag", "clearing")
         gameStartingJob?.cancel()
         runBlocking {
             try {
-                gameRepository.session.disconnect()
+                gameRepository.session?.disconnect()
             } catch (e: Exception) {
                 Log.e("tag", "Error during disconnect", e)
             }

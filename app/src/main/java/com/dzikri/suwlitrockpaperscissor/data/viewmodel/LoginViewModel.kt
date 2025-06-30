@@ -95,7 +95,7 @@ class LoginViewModel @Inject constructor(
                         }
                     }
                 } catch (e: Exception) {
-                    _loginResponse.value = ErrorHandler.handleLoginEndpointHitError(e)
+                    _loginResponse.value = ErrorHandler.handleAuthEndpointHitError(e)
                 }
             }
         }

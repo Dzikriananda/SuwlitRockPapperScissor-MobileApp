@@ -11,17 +11,26 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
+    val userRepository: UserRepository
 ) : ViewModel() {
     private val _roomIdInput = MutableStateFlow(InputFieldState())
     val roomIdInput: StateFlow<InputFieldState> = _roomIdInput.asStateFlow()
 
     private val _isJoiningRoom = MutableStateFlow(false)
     val isJoiningRoom: StateFlow<Boolean> = _isJoiningRoom.asStateFlow()
+
+    private val _username = MutableStateFlow("")
+    val username: StateFlow<String> = _username.asStateFlow()
+
+    init {
+        fetchUsername()
+    }
 
     fun onRoomIdInputChange(newValue: String) {
         if(newValue.length <= 6) {
@@ -38,6 +47,17 @@ class HomeViewModel @Inject constructor(
             }
         }
     }
+
+    fun fetchUsername() {
+        viewModelScope.launch {
+            _username.value = userRepository.currentUsername.first()
+        }
+    }
+
+    suspend fun logOut() {
+        userRepository.deleteUserSession()
+    }
+
 
 
 

@@ -1,5 +1,6 @@
 package com.dzikri.suwlitrockpaperscissor.ui.screen
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -70,6 +71,12 @@ fun RegisterScreen(navController: NavController,viewModel: RegisterViewModel = h
             message = "Now You can Sign In With Your Account",
             title = "Sign Up Success"
         )
+    }
+
+    BackHandler {
+        if(registerState != ResultOf.Loading) {
+            navController.popBackStack()
+        }
     }
 
     Box(
@@ -193,8 +200,9 @@ fun RegisterScreen(navController: NavController,viewModel: RegisterViewModel = h
                             fontWeight = FontWeight.Normal,
                             color = Color(0XFF2395d2),
                             modifier = Modifier.align(Alignment.CenterHorizontally).clickable {
-                                navController.popBackStack()
-
+                                if(registerState != ResultOf.Loading) {
+                                    navController.popBackStack()
+                                }
                             }
                         )
 

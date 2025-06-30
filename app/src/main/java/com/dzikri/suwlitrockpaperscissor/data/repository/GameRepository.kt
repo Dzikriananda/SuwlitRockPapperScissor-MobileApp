@@ -15,14 +15,14 @@ import kotlinx.coroutines.launch
 
 class GameRepository @Inject constructor(private val webSocketInstance: WebSocketInstance) {
 
-    lateinit var client: StompClient
-    lateinit var session: StompSession
+    var client: StompClient? = null
+    var session: StompSession? = null
 
     suspend fun setupWsConnection(userId: String,token: String) {
         Log.d("wsconnect","Setup ws connection")
         client = webSocketInstance.client
         Log.d("wsconnect","client instantianted")
-        session = client.connect(webSocketInstance.WsUrl(userId,token))
+        session = client?.connect(webSocketInstance.WsUrl(userId,token))
         Log.d("wsconnect","session instantianted")
     }
 
@@ -31,35 +31,35 @@ class GameRepository @Inject constructor(private val webSocketInstance: WebSocke
         Log.d("game repo","creating room")
         val payload = mapOf<String, String>("userId" to userId)
         val body = Gson().toJson(payload).toString()
-        session.sendText(destination = "/app/join-room", body = body).toString()
+        session?.sendText(destination = "/app/join-room", body = body).toString()
     }
 
 
 
     suspend fun joinRoom(roomId: String, userId: String,token: String) {
         client = webSocketInstance.client
-        session = client.connect(webSocketInstance.WsUrl(userId,token))
-        session.sendText(destination = "/app/join-room", body = mapOf<String, String>(
+        session = client?.connect(webSocketInstance.WsUrl(userId,token))
+        session?.sendText(destination = "/app/join-room", body = mapOf<String, String>(
             "roomId" to roomId,
             "userId" to userId
-            ).toString()
+        ).toString()
         )
     }
 
     suspend fun subscribeToGameStartingStatus(userId: String,token: String): Flow<String> {
-        val subscription: Flow<String> = session.subscribeText("/user/${userId}/queue/game-status")
+        val subscription: Flow<String> = session!!.subscribeText("/user/${userId}/queue/game-status")
         return subscription
     }
 
 
-    suspend fun simulateErrorCreateRoom(userId: String,token: String) {
-        client = webSocketInstance.client
-        session = client.connect(webSocketInstance.WsUrl(userId,token))
-        val payload = mapOf<String, String>("userId" to userId)
-        val body = Gson().toJson(payload).toString()
-        session.sendText(destination = "/app/join-room", body = body).toString()
-
-    }
+//    suspend fun simulateErrorCreateRoom(userId: String,token: String) {
+//        client = webSocketInstance.client
+//        session = client.connect(webSocketInstance.WsUrl(userId,token))
+//        val payload = mapOf<String, String>("userId" to userId)
+//        val body = Gson().toJson(payload).toString()
+//        session.sendText(destination = "/app/join-room", body = body).toString()
+//
+//    }
 
 
 

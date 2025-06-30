@@ -186,7 +186,9 @@ fun LoginScreen(navController: NavController,viewModel: LoginViewModel = hiltVie
                           modifier = Modifier
                               .align(Alignment.CenterHorizontally)
                               .clickable {
-                                  navController.navigate(route = Screen.Register.route)
+                                  if(loginState != ResultOf.Loading){
+                                      navController.navigate(route = Screen.Register.route)
+                                  }
                               }
                       )
                   }

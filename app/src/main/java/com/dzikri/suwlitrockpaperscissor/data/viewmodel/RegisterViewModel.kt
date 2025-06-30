@@ -86,7 +86,7 @@ class RegisterViewModel @Inject constructor(
                     _registerResponse.value = ResultOf.Failure(errorBody.message, null)
                 }
             } catch (e: Exception) {
-                _registerResponse.value = ResultOf.Failure(e.message, e)
+                _registerResponse.value = ErrorHandler.handleAuthEndpointHitError(e)
             }
         }
     }

@@ -25,7 +25,9 @@
     import androidx.compose.foundation.pager.rememberPagerState
     import androidx.compose.foundation.shape.RoundedCornerShape
     import androidx.compose.material.icons.Icons
+    import androidx.compose.material.icons.automirrored.filled.Logout
     import androidx.compose.material.icons.filled.Email
+    import androidx.compose.material.icons.filled.Logout
     import androidx.compose.material.icons.filled.People
     import androidx.compose.material3.Button
     import androidx.compose.material3.ButtonDefaults
@@ -54,6 +56,7 @@
     import androidx.compose.ui.layout.ContentScale
     import androidx.compose.ui.res.painterResource
     import androidx.compose.ui.text.TextStyle
+    import androidx.compose.ui.text.font.FontFamily
     import androidx.compose.ui.text.font.FontWeight
     import androidx.compose.ui.tooling.preview.Preview
     import androidx.compose.ui.unit.dp
@@ -82,6 +85,7 @@
 
         LaunchedEffect(joinRoomStatus) {
             if(joinRoomStatus) {
+
                 Log.d("tagg", "my Message")
                 navController.navigate(route = Screen.Game.route)
             }
@@ -96,15 +100,55 @@
             Column (modifier = Modifier
                 .padding(innerPaddingValues)
                 .padding(horizontal = 25.dp)){
-                AvatarImage()
+                TopComponent(viewModel = viewModel, navController = navController)
                 PlayComponent(viewModel = viewModel,navController = navController)
             }
         }
     }
 
     @Composable
-    fun TopComponent() {
-        Row (){
+    fun TopComponent(viewModel: HomeViewModel,navController: NavController) {
+
+        val coroutineScope = rememberCoroutineScope()
+        val username by viewModel.username.collectAsStateWithLifecycle()
+
+        Row (
+//            modifier = Modifier.background(Color.White),
+            verticalAlignment = Alignment.CenterVertically
+        ){
+            AvatarImage()
+            Column {
+                Text(
+                    text = username,
+                    fontFamily = lilitaOneFamily,
+                    fontWeight = FontWeight.Normal,
+                    color = Color.White,
+                    fontSize = 22.sp,
+                )
+                Image(
+                    painter = painterResource(id = R.drawable.logo_horizontal),
+                    contentDescription = "Logo",
+                    modifier = Modifier.height(20.dp)
+                )
+            }
+            Spacer(modifier = Modifier.weight(1f))
+            IconButton(
+                onClick = {
+                    coroutineScope.launch {
+                        viewModel.logOut()
+                        navController.navigate(route = Screen.Splash.route){
+                            popUpTo(0){inclusive = true}
+                        }
+
+                    }
+                }
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.Logout,
+                    contentDescription = "logout",
+                    modifier = Modifier.size(50.dp)
+                )
+            }
 
         }
     }
@@ -115,7 +159,7 @@
         Image(
             painter = image,
             contentDescription = "dummy avatar",
-            modifier = Modifier.size(50.dp),
+            modifier = Modifier.size(75.dp),
         )
     }
 

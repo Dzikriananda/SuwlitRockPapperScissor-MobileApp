@@ -58,7 +58,7 @@ fun GameScreen(navController: NavController,innerPaddingValues: PaddingValues,ro
             message = (roomStatus as ResultOf.Success<GameStartingStatus>).value.roomId
         )
         is ResultOf.Loading -> LoadingDialog(onDismissRequest = {onPressBack()})
-        is ResultOf.Failure -> ErrorDialog((roomStatus as ResultOf.Failure).message!!) {}
+        is ResultOf.Failure -> ErrorDialog(onDismissRequest = {onPressBack()},(roomStatus as ResultOf.Failure).message!!)
         is ResultOf.Started -> LoadingDialog(onDismissRequest = {onPressBack()})
     }
 
@@ -124,7 +124,16 @@ fun WaitingDialog(onDismissRequest: () -> Unit,message: String) {
 
 @Composable
 fun LoadingDialog(onDismissRequest: () -> Unit) {
-    Dialog(onDismissRequest = { onDismissRequest() }) {
+    Dialog(
+        onDismissRequest = {},
+        properties = DialogProperties(
+            dismissOnClickOutside = false,
+            dismissOnBackPress = false
+        )
+    ) {
+        BackHandler {
+            onDismissRequest()
+        }
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -142,7 +151,7 @@ fun LoadingDialog(onDismissRequest: () -> Unit) {
 }
 
 @Composable
-fun ErrorDialog(errorMessage: String,onDismissRequest: () -> Unit) {
+fun ErrorDialog(onDismissRequest: () -> Unit,errorMessage: String,) {
     Dialog(
         onDismissRequest = {},
         properties = DialogProperties(
