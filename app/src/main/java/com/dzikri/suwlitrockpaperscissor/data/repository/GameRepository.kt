@@ -1,6 +1,8 @@
 package com.dzikri.suwlitrockpaperscissor.data.repository
 
 import android.util.Log
+import com.dzikri.suwlitrockpaperscissor.data.model.IsRoomExistResponse
+import com.dzikri.suwlitrockpaperscissor.data.network.GameApiInterface
 import com.dzikri.suwlitrockpaperscissor.data.network.WebSocketInstance
 import com.google.gson.Gson
 import kotlinx.coroutines.coroutineScope
@@ -12,8 +14,12 @@ import org.hildan.krossbow.stomp.subscribeText
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
+import retrofit2.Response
 
-class GameRepository @Inject constructor(private val webSocketInstance: WebSocketInstance) {
+class GameRepository @Inject constructor(
+    private val webSocketInstance: WebSocketInstance,
+    private val gameApiClient: GameApiInterface
+) {
 
     var client: StompClient? = null
     var session: StompSession? = null
@@ -42,13 +48,17 @@ class GameRepository @Inject constructor(private val webSocketInstance: WebSocke
         session?.sendText(destination = "/app/join-room", body = mapOf<String, String>(
             "roomId" to roomId,
             "userId" to userId
-        ).toString()
+            ).toString()
         )
     }
 
     suspend fun subscribeToGameStartingStatus(userId: String,token: String): Flow<String> {
         val subscription: Flow<String> = session!!.subscribeText("/user/${userId}/queue/game-status")
         return subscription
+    }
+
+    suspend fun checkIfRoomExist(roomId: String): Response<IsRoomExistResponse> {
+        return gameApiClient.fetchRoomExistStatus(roomId)
     }
 
 

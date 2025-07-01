@@ -1,5 +1,6 @@
 package com.dzikri.suwlitrockpaperscissor.di
 
+import com.dzikri.suwlitrockpaperscissor.data.network.GameApiInterface
 import com.dzikri.suwlitrockpaperscissor.data.network.RetrofitInstance
 import com.dzikri.suwlitrockpaperscissor.data.network.UserApiInterface
 import com.dzikri.suwlitrockpaperscissor.data.network.WebSocketInstance
@@ -18,6 +19,11 @@ object ApiModule {
     @Provides
     fun provideUserApiClass(): UserApiInterface {
         return RetrofitInstance.getInstance().create<UserApiInterface>(UserApiInterface::class.java)
+    }
+
+    @Provides
+    fun provideGameApiClass(): GameApiInterface {
+        return RetrofitInstance.getInstance().create<GameApiInterface>(GameApiInterface::class.java)
     }
 
     @Provides

@@ -75,7 +75,6 @@ class LoginViewModel @Inject constructor(
                 )
                 try {
                     val result = repository.login(body)
-                    Log.d("login in LoginViewModel", "body: ${result.body()}")
                     if (result.code() == 200) {
                         val token = result.body()!!.data!!.token
                         val email = result.body()!!.data!!.email

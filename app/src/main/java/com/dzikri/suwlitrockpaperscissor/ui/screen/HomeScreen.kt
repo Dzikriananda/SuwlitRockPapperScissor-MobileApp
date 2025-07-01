@@ -113,7 +113,6 @@
         val username by viewModel.username.collectAsStateWithLifecycle()
 
         Row (
-//            modifier = Modifier.background(Color.White),
             verticalAlignment = Alignment.CenterVertically
         ){
             AvatarImage()
@@ -473,13 +472,14 @@ fun MultiplayerModalComponent(viewModel: HomeViewModel,navController: NavControl
                 ),
             placeHolderValue = "Room Code",
             onChange = {it -> viewModel.onRoomIdInputChange(it)},
-            isError = false,
-            errorMessage = "",
+            isError = roomIdInput.value.isError,
+            errorMessage = roomIdInput.value.errorMessage,
 
             )
         Spacer(modifier = Modifier.height(10.dp))
         Button(
             onClick = {
+                viewModel.checkIfRoomExist()
             },
             shape = RoundedCornerShape(8.dp),
             modifier = Modifier.fillMaxWidth(),

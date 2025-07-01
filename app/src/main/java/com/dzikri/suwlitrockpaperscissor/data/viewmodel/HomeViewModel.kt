@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dzikri.suwlitrockpaperscissor.data.model.InputFieldState
 import com.dzikri.suwlitrockpaperscissor.data.network.WebSocketInstance
+import com.dzikri.suwlitrockpaperscissor.data.repository.GameRepository
 import com.dzikri.suwlitrockpaperscissor.data.repository.UserRepository
 import com.dzikri.suwlitrockpaperscissor.util.StringHelper
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,7 +18,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    val userRepository: UserRepository
+    val userRepository: UserRepository,
+    val gameRepository: GameRepository
 ) : ViewModel() {
     private val _roomIdInput = MutableStateFlow(InputFieldState())
     val roomIdInput: StateFlow<InputFieldState> = _roomIdInput.asStateFlow()
@@ -27,6 +29,9 @@ class HomeViewModel @Inject constructor(
 
     private val _username = MutableStateFlow("")
     val username: StateFlow<String> = _username.asStateFlow()
+
+    private val _isRoomExist = MutableStateFlow(false)
+    val isRoomExist: StateFlow<Boolean> = _isRoomExist.asStateFlow()
 
     init {
         fetchUsername()
@@ -56,6 +61,12 @@ class HomeViewModel @Inject constructor(
 
     suspend fun logOut() {
         userRepository.deleteUserSession()
+    }
+
+    fun checkIfRoomExist() {
+        viewModelScope.launch {
+            gameRepository.checkIfRoomExist(_roomIdInput.value.text)
+        }
     }
 
 

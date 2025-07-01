@@ -14,9 +14,16 @@ object RetrofitInstance{
         val clientBuilder: OkHttpClient.Builder = client.newBuilder().addInterceptor(interceptor as HttpLoggingInterceptor)
         val retrofit = Retrofit.Builder().baseUrl(BASE_URL)
             .addConverterFactory(GsonConverterFactory.create())
-            .client(clientBuilder.build())
+//            .client(clientBuilder.build())
+            .client(okhttpClient())
             .build()
         return retrofit
     }
+
+//    private fun okhttpClient(): OkHttpClient {
+//        return OkHttpClient.Builder()
+//            .addInterceptor(AuthInterceptor())
+//            .build()
+//    }
 
 }

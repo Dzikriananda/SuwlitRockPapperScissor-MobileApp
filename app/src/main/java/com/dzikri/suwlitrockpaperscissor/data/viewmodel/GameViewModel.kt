@@ -13,14 +13,12 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import org.hildan.krossbow.websocket.WebSocketConnectionException
 import javax.inject.Inject
 
 
@@ -29,15 +27,18 @@ class GameViewModel @Inject constructor(private val gameRepository: GameReposito
 
     lateinit var userID: String
     lateinit var token: String
-    private var gameStartingJob: Job? = null
-    private var _gameStartingStatus: MutableStateFlow<ResultOf<GameStartingStatus>> = MutableStateFlow(ResultOf.Started)
-    val gameStartingStatus: StateFlow<ResultOf<GameStartingStatus>> = _gameStartingStatus.asStateFlow()
+    private var gameInitJob: Job? = null
+    private var _gameInitStatus: MutableStateFlow<ResultOf<GameStartingStatus>> = MutableStateFlow(ResultOf.Started)
+    val gameInitStatus: StateFlow<ResultOf<GameStartingStatus>> = _gameInitStatus.asStateFlow()
+    private var _gameStartingStatus: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val gameStartingStatus: StateFlow<Boolean> = _gameStartingStatus.asStateFlow()
 
-
+    private var _timerCount: MutableStateFlow<Int> = MutableStateFlow(5)
+    val timerCount: StateFlow<Int> = _timerCount.asStateFlow()
 
    fun createRoom() {
         viewModelScope.launch {
-            _gameStartingStatus.value = ResultOf.Loading
+            _gameInitStatus.value = ResultOf.Loading
             userID = userRepository.currentUserId.first()
             token = userRepository.currentToken.first()
             try{
@@ -47,12 +48,19 @@ class GameViewModel @Inject constructor(private val gameRepository: GameReposito
             } catch (exception: Exception) {
                 Log.d("error while connecting ws",exception.toString())
                 val errResult = ErrorHandler.handleWsConnectionError(exception)
-                _gameStartingStatus.value = errResult
+                _gameInitStatus.value = errResult
                 clearJob()
                 //TODO SAAT EXCEPTION TIDAK ADA INTERNET MASIH ADA MESSAGE "A resource failed to call close."
             }
         }
     }
+
+
+    /*
+        Wajib Suspend (harus await), jangan munculkan launch coroutine baru karena
+        subscribe harus sudah berjalan terlebih dahulu sebelum mengirim request
+        membuat room agar response dari WS BE bisa ditangkap sesegera mungkin.
+    */
 
     private suspend fun subscribeToGameStartingStatus() {
         val flow = gameRepository.subscribeToGameStartingStatus(userID, token)
@@ -60,22 +68,46 @@ class GameViewModel @Inject constructor(private val gameRepository: GameReposito
 
         val collectionStarted = CompletableDeferred<Unit>()
 
-        gameStartingJob = viewModelScope.launch {
+        gameInitJob = viewModelScope.launch {
             collectionStarted.complete(Unit) // Notify collection has started
 
             flow.collect { msg ->
                 Log.d("WsListener", "Received: $msg")
                 val gameStartMessage = gson.fromJson(msg, GameStartingStatus::class.java)
-                _gameStartingStatus.value = ResultOf.Success(gameStartMessage)
+                _gameInitStatus.value = ResultOf.Success(gameStartMessage)
             }
         }
 
         collectionStarted.await() // Wait until collection start
     }
 
+    fun setInitStatusToStarted() {
+        _gameInitStatus.value = ResultOf.Started
+    }
+
+    fun retry() {
+        setInitStatusToStarted()
+        createRoom()
+    }
+
+    fun gameStartCountDown() {
+        viewModelScope.launch {
+            while(_timerCount.value > 0) {
+                delay(1000)
+                _timerCount.value = _timerCount.value - 1
+            }
+            _gameInitStatus.value = ResultOf.Started
+        }
+    }
+
+    fun startGame() {
+        gameStartCountDown()
+        //TODO
+    }
+
 
     fun clearJob() {
-        gameStartingJob?.cancel()
+        gameInitJob?.cancel()
         runBlocking {
             try {
                 gameRepository.session?.disconnect()
