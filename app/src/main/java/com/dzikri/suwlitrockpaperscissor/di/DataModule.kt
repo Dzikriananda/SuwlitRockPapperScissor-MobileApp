@@ -4,10 +4,7 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
-import com.dzikri.suwlitrockpaperscissor.data.network.RetrofitInstance
-import com.dzikri.suwlitrockpaperscissor.data.network.UserApiInterface
-import com.dzikri.suwlitrockpaperscissor.data.repository.UserRepository
-import dagger.Binds
+
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

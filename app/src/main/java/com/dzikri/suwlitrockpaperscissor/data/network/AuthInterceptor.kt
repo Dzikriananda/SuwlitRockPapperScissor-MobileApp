@@ -1,5 +1,6 @@
 package com.dzikri.suwlitrockpaperscissor.data.network
 
+import com.dzikri.suwlitrockpaperscissor.data.SessionManager
 import com.dzikri.suwlitrockpaperscissor.data.repository.UserRepository
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -8,7 +9,7 @@ import okhttp3.Response
 import javax.inject.Inject
 
 class AuthInterceptor @Inject constructor(
-    private val userRepository: UserRepository
+    private val sessionManager: SessionManager
 ) : Interceptor {
 
     private val excludedPaths = listOf(
@@ -24,7 +25,7 @@ class AuthInterceptor @Inject constructor(
 
         if (excludedPaths.none { path.endsWith(it) }) {
             runBlocking {
-                userRepository.currentToken.first().let {
+                sessionManager.currentToken.first().let {
                     requestBuilder.addHeader("Authorization", "Bearer $it")
                 }
             }

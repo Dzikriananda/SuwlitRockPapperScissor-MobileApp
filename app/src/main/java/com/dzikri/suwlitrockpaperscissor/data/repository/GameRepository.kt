@@ -40,6 +40,13 @@ class GameRepository @Inject constructor(
         session?.sendText(destination = "/app/join-room", body = body).toString()
     }
 
+    suspend fun joinRoom(userId: String,roomId: String) {
+        Log.d("game repo","creating room")
+        val payload = mapOf<String, String>("userId" to userId,"roomId" to roomId)
+        val body = Gson().toJson(payload).toString()
+        session?.sendText(destination = "/app/join-room", body = body).toString()
+    }
+
 
 
     suspend fun joinRoom(roomId: String, userId: String,token: String) {

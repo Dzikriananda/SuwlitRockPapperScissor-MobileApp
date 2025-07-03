@@ -45,9 +45,9 @@ object ErrorHandler {
     fun handleWsConnectionError(e: Exception): ResultOf.Failure {
         var message = e.message ?: ""
         when {
-            "Failed to connect" in message ->  {
-                Log.d("WebSocket", "Error: No internet Connection")
-                message = "No Internet Connection"
+            "after 10000ms" in message ->  {
+                Log.d("WebSocket", "Error: Network Problem")
+                message = "Our Network is Busy, Please Try Again Later"
             }
             "404" in message -> {
                 Log.d("WebSocket", "Error: 404 Not Found — likely wrong URL or credentials.")

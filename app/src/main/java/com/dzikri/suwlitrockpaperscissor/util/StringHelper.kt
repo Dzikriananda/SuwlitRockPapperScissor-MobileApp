@@ -75,11 +75,28 @@ object StringHelper {
         return inputFieldState
     }
 
-    fun generateRandomString(length: Int = 6): String {
-        val allowedChars = ('A'..'Z') + ('a'..'z') + ('0'..'9')
-        return (1..length)
-            .map { allowedChars.random() }
-            .joinToString("")
+    fun validateRoomId(value: String): InputFieldState {
+        lateinit var inputFieldState: InputFieldState
+        if(value.length == 0){
+            inputFieldState = InputFieldState(
+                text = value,
+                isError = true,
+                errorMessage = "Room Id must be not empty"
+            )
+        } else if(value.length < 6) {
+            inputFieldState = InputFieldState(
+                text = value,
+                isError = true,
+                errorMessage = "Room Id must be 6 characters"
+            )
+        } else {
+            inputFieldState = InputFieldState(
+                text = value,
+                isError = false,
+                errorMessage = ""
+            )
+        }
+        return inputFieldState
     }
 
 }

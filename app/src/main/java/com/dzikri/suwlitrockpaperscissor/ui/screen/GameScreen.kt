@@ -23,7 +23,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
@@ -34,20 +33,38 @@ import com.dzikri.suwlitrockpaperscissor.ui.component.BackgroundImage
 import com.dzikri.suwlitrockpaperscissor.ui.theme.lilitaOneFamily
 import kotlinx.coroutines.delay
 import android.util.Log
+import android.util.Size
+import androidx.compose.foundation.Image
 import com.dzikri.suwlitrockpaperscissor.R
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.material3.Button
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import coil3.compose.rememberAsyncImagePainter
+import coil3.compose.rememberConstraintsSizeResolver
+import coil3.request.ImageRequest
 import com.dzikri.suwlitrockpaperscissor.data.model.GameStartingStatus
 import com.dzikri.suwlitrockpaperscissor.data.model.ResultOf
 import com.dzikri.suwlitrockpaperscissor.data.viewmodel.GameViewModel
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 
 @Composable
 fun GameScreen(navController: NavController,innerPaddingValues: PaddingValues,roomId: String?,viewModel: GameViewModel = hiltViewModel()) {
@@ -66,6 +83,7 @@ fun GameScreen(navController: NavController,innerPaddingValues: PaddingValues,ro
 
     //Wajib agar tidak terjadi kebocoran ram/memori HP
     fun onPressBack() {
+        mMediaPlayer.release()
         viewModel.clearJob()
         navController.popBackStack()
     }
@@ -86,10 +104,10 @@ fun GameScreen(navController: NavController,innerPaddingValues: PaddingValues,ro
                     viewModel.startGame()
                 }
             } else {
-                WaitingDialog(
-                    onDismissRequest = {onPressBack()},
-                    message = (roomStatus as ResultOf.Success<GameStartingStatus>).value.roomId
-                )
+//                WaitingDialog(
+//                    onDismissRequest = {onPressBack()},
+//                    message = (roomStatus as ResultOf.Success<GameStartingStatus>).value.roomId
+//                )
             }
         }
         is ResultOf.Loading -> LoadingDialog(onDismissRequest = {onPressBack()})
@@ -103,7 +121,11 @@ fun GameScreen(navController: NavController,innerPaddingValues: PaddingValues,ro
 
 
     LaunchedEffect(Unit) {
-        viewModel.createRoom()
+        if(roomId != null) {
+            viewModel.joinRoom(roomId)
+        } else {
+            viewModel.createRoom()
+        }
     }
 
     Box(
@@ -113,11 +135,84 @@ fun GameScreen(navController: NavController,innerPaddingValues: PaddingValues,ro
         Column (modifier = Modifier
             .padding(innerPaddingValues)
         ){
-            Text(roomId ?: "", style = TextStyle(fontSize = 40.sp))
+           SlidingImages()
         }
 
     }
 }
+
+@Composable
+fun SlidingImages() {
+    var visible by remember { mutableStateOf(true) }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        // Toggle button to trigger animation
+        Button(
+            onClick = { visible = !visible },
+            modifier = Modifier.align(Alignment.Center)
+        ) {
+            Text("Toggle Slide")
+        }
+
+        AnimatedVisibility(
+            visible = visible,
+            enter = slideInVertically(
+                initialOffsetY = { -it },
+                animationSpec = tween(
+                    durationMillis = 600,
+                    easing = FastOutSlowInEasing
+                )
+            ),
+            exit = slideOutVertically(
+                targetOffsetY = { -it * 2 },
+                animationSpec = tween(
+                    durationMillis = 1200,
+                    easing = FastOutSlowInEasing
+                )
+            ),
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+        ) {
+            Image(
+                painter = rememberAsyncImagePainter(R.drawable.humanrock),
+                contentDescription = "Top Image",
+                modifier = Modifier
+                    .rotate(90f),
+                contentScale = ContentScale.Fit
+            )
+        }
+
+        // Bottom image: slide in from bottom, out to bottom
+        AnimatedVisibility(
+            visible = visible,
+            enter = slideInVertically(
+                initialOffsetY = { it },
+                animationSpec = tween(
+                    durationMillis = 600,
+                    easing = FastOutSlowInEasing
+                )
+            ),
+            exit = slideOutVertically(
+                targetOffsetY = { it * 2 },
+                animationSpec = tween(
+                    durationMillis = 1200,
+                    easing = FastOutSlowInEasing
+                )
+            ),
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+        ) {
+            Image(
+                painter = rememberAsyncImagePainter(R.drawable.humanrock),
+                contentDescription = "Bottom Image",
+                modifier = Modifier
+                    .rotate(270f),
+                contentScale = ContentScale.Fit
+            )
+        }
+    }
+}
+
 
 @Composable
 fun WaitingDialog(onDismissRequest: () -> Unit,message: String) {

@@ -1,29 +1,52 @@
 package com.dzikri.suwlitrockpaperscissor.data.network
 
+import com.dzikri.suwlitrockpaperscissor.data.SessionManager
+import com.dzikri.suwlitrockpaperscissor.data.repository.UserRepository
+import dagger.Module
+import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import javax.inject.Singleton
 
-object RetrofitInstance{
-    private const val BASE_URL ="http://43.173.1.87:8081/"
+@Module
+@InstallIn(SingletonComponent::class)
+object NetworkModule {
 
-    fun getInstance(): Retrofit {
-        val client = OkHttpClient()
-        val interceptor = HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY)
-        val clientBuilder: OkHttpClient.Builder = client.newBuilder().addInterceptor(interceptor as HttpLoggingInterceptor)
-        val retrofit = Retrofit.Builder().baseUrl(BASE_URL)
-            .addConverterFactory(GsonConverterFactory.create())
-//            .client(clientBuilder.build())
-            .client(okhttpClient())
-            .build()
-        return retrofit
+    @Provides
+    @Singleton
+    fun provideAuthInterceptor(
+        sessionManager: SessionManager
+    ): AuthInterceptor {
+        return AuthInterceptor(sessionManager)
     }
 
-//    private fun okhttpClient(): OkHttpClient {
-//        return OkHttpClient.Builder()
-//            .addInterceptor(AuthInterceptor())
-//            .build()
-//    }
+    @Provides
+    @Singleton
+    fun provideOkHttpClient(
+        authInterceptor: AuthInterceptor
+    ): OkHttpClient {
+        return OkHttpClient.Builder()
+            .addInterceptor(authInterceptor)
+            .addInterceptor(HttpLoggingInterceptor().apply {
+                level = HttpLoggingInterceptor.Level.BODY
+            })
+            .build()
+    }
+
+    @Provides
+    @Singleton
+    fun provideRetrofit(
+        okHttpClient: OkHttpClient
+    ): Retrofit {
+        return Retrofit.Builder()
+            .baseUrl("http://43.173.1.87:8081/")
+            .client(okHttpClient)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+    }
 
 }

@@ -1,8 +1,11 @@
 package com.dzikri.suwlitrockpaperscissor.data.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dzikri.suwlitrockpaperscissor.data.model.InputFieldState
+import com.dzikri.suwlitrockpaperscissor.data.model.IsRoomExistResponse
+import com.dzikri.suwlitrockpaperscissor.data.model.ResultOf
 import com.dzikri.suwlitrockpaperscissor.data.network.WebSocketInstance
 import com.dzikri.suwlitrockpaperscissor.data.repository.GameRepository
 import com.dzikri.suwlitrockpaperscissor.data.repository.UserRepository
@@ -24,14 +27,17 @@ class HomeViewModel @Inject constructor(
     private val _roomIdInput = MutableStateFlow(InputFieldState())
     val roomIdInput: StateFlow<InputFieldState> = _roomIdInput.asStateFlow()
 
-    private val _isJoiningRoom = MutableStateFlow(false)
-    val isJoiningRoom: StateFlow<Boolean> = _isJoiningRoom.asStateFlow()
 
     private val _username = MutableStateFlow("")
     val username: StateFlow<String> = _username.asStateFlow()
 
-    private val _isRoomExist = MutableStateFlow(false)
-    val isRoomExist: StateFlow<Boolean> = _isRoomExist.asStateFlow()
+
+    private val _isJoiningRoom = MutableStateFlow(false)
+    val isJoiningRoom : StateFlow<Boolean> = _isJoiningRoom.asStateFlow()
+
+    private val _isRoomExist: MutableStateFlow<ResultOf<IsRoomExistResponse>> = MutableStateFlow(
+        ResultOf.Started)
+    val isRoomExist: StateFlow<ResultOf<IsRoomExistResponse>> = _isRoomExist.asStateFlow()
 
     init {
         fetchUsername()
@@ -39,17 +45,7 @@ class HomeViewModel @Inject constructor(
 
     fun onRoomIdInputChange(newValue: String) {
         if(newValue.length <= 6) {
-            _roomIdInput.value = InputFieldState(text = newValue)
-        }
-    }
-
-    fun createNewRoom() {
-        if (!_isJoiningRoom.value) {
-            viewModelScope.launch {
-//                _isJoiningRoom.value = true
-//                delay(3000)
-//                _isJoiningRoom.value = false
-            }
+            _roomIdInput.value = StringHelper.validateRoomId(newValue)
         }
     }
 
@@ -64,16 +60,37 @@ class HomeViewModel @Inject constructor(
     }
 
     fun checkIfRoomExist() {
-        viewModelScope.launch {
-            gameRepository.checkIfRoomExist(_roomIdInput.value.text)
+        val tempValue = _roomIdInput.value.text
+        _roomIdInput.value = StringHelper.validateRoomId(tempValue)
+        if(!_roomIdInput.value.isError) {
+            viewModelScope.launch {
+                _isRoomExist.value = ResultOf.Loading
+                try{
+                    val isRoomExistResponse = gameRepository.checkIfRoomExist(_roomIdInput.value.text)
+                    if(isRoomExistResponse.body()!!.exist) {
+                        _isRoomExist.value = ResultOf.Success(isRoomExistResponse.body()!!)
+                    } else {
+                        _isRoomExist.value = ResultOf.Started
+                        _roomIdInput.value = InputFieldState(_roomIdInput.value.text,true,"Room Not Found")
+                    }
+                } catch (e: Exception) {
+                    Log.d("Error"," Error while checkIfRoomExist ${e.message}")
+                    _isRoomExist.value = ResultOf.Failure("An Error Has Occured, Please Try Again",e)
+                    _roomIdInput.value = InputFieldState(_roomIdInput.value.text,true,"An Error Has Occured, Please Try Again")
+                }
+            }
         }
     }
 
-
-
-
-    fun joinRoom(roomId: String) {
+    fun joinRoom() {
         _isJoiningRoom.value = true
     }
+
+    fun resetIsRoomExist() {
+        _isRoomExist.value = ResultOf.Started
+    }
+
+
+
 
 }

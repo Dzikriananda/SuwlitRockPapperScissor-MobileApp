@@ -68,6 +68,7 @@
     import com.dzikri.suwlitrockpaperscissor.R
     import com.dzikri.suwlitrockpaperscissor.data.enums.GameMode
     import com.dzikri.suwlitrockpaperscissor.data.model.InputFieldState
+    import com.dzikri.suwlitrockpaperscissor.data.model.IsRoomExistResponse
     import com.dzikri.suwlitrockpaperscissor.data.model.ResultOf
     import com.dzikri.suwlitrockpaperscissor.data.viewmodel.HomeViewModel
     import com.dzikri.suwlitrockpaperscissor.ui.component.BackgroundImage
@@ -80,18 +81,17 @@
     @Composable
     fun HomeScreen(navController: NavController,innerPaddingValues: PaddingValues,viewModel: HomeViewModel = hiltViewModel()){
 
-        val joinRoomStatus by viewModel.isJoiningRoom.collectAsStateWithLifecycle()
+        val isRoomExistStatus by viewModel.isRoomExist.collectAsStateWithLifecycle()
+        val roomIdTextField by viewModel.roomIdInput.collectAsStateWithLifecycle()
 
-
-        LaunchedEffect(joinRoomStatus) {
-            if(joinRoomStatus) {
-
-                Log.d("tagg", "my Message")
-                navController.navigate(route = Screen.Game.route)
+        LaunchedEffect(isRoomExistStatus) {
+            if(isRoomExistStatus is ResultOf.Success){
+                if((isRoomExistStatus as ResultOf.Success<IsRoomExistResponse>).value.exist){
+                    viewModel.resetIsRoomExist()
+                    navController.navigate(route = Screen.Game.route + "?roomId=${viewModel.roomIdInput.value.text}")
+                }
             }
         }
-
-
 
         Box(
             modifier = Modifier.fillMaxSize()
@@ -410,7 +410,7 @@
 @Composable
 fun MultiplayerModalComponent(viewModel: HomeViewModel,navController: NavController,onJoin: () -> Unit) {
     val roomIdInput = viewModel.roomIdInput.collectAsStateWithLifecycle()
-    val isJoiningRoom = viewModel.isJoiningRoom.collectAsStateWithLifecycle()
+    val isRoomExist = viewModel.isRoomExist.collectAsStateWithLifecycle()
 
 
     Column(
@@ -427,7 +427,7 @@ fun MultiplayerModalComponent(viewModel: HomeViewModel,navController: NavControl
         Spacer(modifier = Modifier.height(20.dp))
         Button(
             onClick = {
-                viewModel.createNewRoom()
+                viewModel.joinRoom()
                 onJoin.invoke()
                 navController.navigate(route = Screen.Game.route)
 
@@ -436,20 +436,13 @@ fun MultiplayerModalComponent(viewModel: HomeViewModel,navController: NavControl
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(containerColor = Color(0XFF2395d2))
         ) {
-            if(isJoiningRoom.value  == true){
-                CircularProgressIndicator(
-                    modifier = Modifier.width(30.dp),
-                    color = MaterialTheme.colorScheme.secondary,
-                    trackColor = MaterialTheme.colorScheme.surfaceVariant,
-                )
-            } else {
-                Text(
-                    text = "New Room",
-                    fontFamily = lilitaOneFamily,
-                    fontWeight = FontWeight.Normal,
-                    color = Color.White,
-                    fontSize = 25.sp,
-                )            }
+            Text(
+                text = "New Room",
+                fontFamily = lilitaOneFamily,
+                fontWeight = FontWeight.Normal,
+                color = Color.White,
+                fontSize = 25.sp,
+            )
         }
         Spacer(modifier = Modifier.height(10.dp))
         Text(
@@ -482,16 +475,24 @@ fun MultiplayerModalComponent(viewModel: HomeViewModel,navController: NavControl
                 viewModel.checkIfRoomExist()
             },
             shape = RoundedCornerShape(8.dp),
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().height(45.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color(0XFF2395d2))
         ) {
-            Text(
-                text = "Enter Room",
-                fontFamily = lilitaOneFamily,
-                fontWeight = FontWeight.Normal,
-                color = Color.White,
-                fontSize = 25.sp,
-            )
+            if(isRoomExist.value == ResultOf.Loading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.width(30.dp),
+                    color = MaterialTheme.colorScheme.secondary,
+                    trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                )
+            } else {
+                Text(
+                    text = "Enter Room",
+                    fontFamily = lilitaOneFamily,
+                    fontWeight = FontWeight.Normal,
+                    color = Color.White,
+                    fontSize = 25.sp,
+                )
+            }
         }
 
     }

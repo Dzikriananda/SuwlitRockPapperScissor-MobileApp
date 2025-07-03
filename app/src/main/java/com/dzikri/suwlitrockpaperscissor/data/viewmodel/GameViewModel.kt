@@ -55,6 +55,24 @@ class GameViewModel @Inject constructor(private val gameRepository: GameReposito
         }
     }
 
+    fun joinRoom(roomId: String) {
+        viewModelScope.launch {
+            _gameInitStatus.value = ResultOf.Loading
+            userID = userRepository.currentUserId.first()
+            token = userRepository.currentToken.first()
+            try{
+                gameRepository.setupWsConnection(userID,token)
+                subscribeToGameStartingStatus()
+                gameRepository.joinRoom(userID,roomId)
+            } catch (exception: Exception) {
+                Log.d("error while connecting ws",exception.toString())
+                val errResult = ErrorHandler.handleWsConnectionError(exception)
+                _gameInitStatus.value = errResult
+                clearJob()
+            }
+        }
+    }
+
 
     /*
         Wajib Suspend (harus await), jangan munculkan launch coroutine baru karena
