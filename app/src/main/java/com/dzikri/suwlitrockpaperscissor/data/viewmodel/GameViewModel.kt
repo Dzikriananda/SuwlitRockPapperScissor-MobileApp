@@ -3,6 +3,7 @@ package com.dzikri.suwlitrockpaperscissor.data.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.dzikri.suwlitrockpaperscissor.data.enums.RoundStatus
 import com.dzikri.suwlitrockpaperscissor.data.model.GameStartingStatus
 import com.dzikri.suwlitrockpaperscissor.data.model.ResultOf
 import com.dzikri.suwlitrockpaperscissor.data.repository.GameRepository
@@ -33,8 +34,15 @@ class GameViewModel @Inject constructor(private val gameRepository: GameReposito
     private var _gameStartingStatus: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val gameStartingStatus: StateFlow<Boolean> = _gameStartingStatus.asStateFlow()
 
-    private var _timerCount: MutableStateFlow<Int> = MutableStateFlow(5)
-    val timerCount: StateFlow<Int> = _timerCount.asStateFlow()
+    private var _roundStatus: MutableStateFlow<RoundStatus> = MutableStateFlow(RoundStatus.Idle)
+    val roundStatus: StateFlow<RoundStatus> = _roundStatus.asStateFlow()
+
+
+    private var _gameStartTimerCount: MutableStateFlow<Int> = MutableStateFlow(5)
+    val gameStartTimerCount: StateFlow<Int> = _gameStartTimerCount.asStateFlow()
+
+    private var _roundTimerCount: MutableStateFlow<Int> = MutableStateFlow(5)
+    val roundTimerCount: StateFlow<Int> = _roundTimerCount.asStateFlow()
 
    fun createRoom() {
         viewModelScope.launch {
@@ -108,18 +116,32 @@ class GameViewModel @Inject constructor(private val gameRepository: GameReposito
         createRoom()
     }
 
-    fun gameStartCountDown() {
-        viewModelScope.launch {
-            while(_timerCount.value > 0) {
-                delay(1000)
-                _timerCount.value = _timerCount.value - 1
-            }
-            _gameInitStatus.value = ResultOf.Started
+    suspend fun gameStartCountDown() {
+        while (_gameStartTimerCount.value > 0) {
+            delay(1000)
+            _gameStartTimerCount.value = _gameStartTimerCount.value - 1
         }
+        _gameInitStatus.value = ResultOf.Started
+        _gameStartingStatus.value = true
+    }
+
+
+    suspend fun roundCountDown() {
+        Log.d("tag","round countdown started")
+        _roundStatus.value = RoundStatus.Started
+        while(_roundTimerCount.value > 0) {
+            Log.d("tag",_roundTimerCount.value.toString())
+            delay(1000)
+            _roundTimerCount.value = _roundTimerCount.value - 1
+        }
+        _roundStatus.value = RoundStatus.Ended
     }
 
     fun startGame() {
-        gameStartCountDown()
+        viewModelScope.launch {
+            gameStartCountDown()
+            roundCountDown()
+        }
         //TODO
     }
 

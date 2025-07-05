@@ -1,7 +1,6 @@
 package com.dzikri.suwlitrockpaperscissor.ui.screen
 
 import android.media.MediaPlayer
-import android.os.Message
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,7 +12,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
@@ -31,16 +29,10 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.dzikri.suwlitrockpaperscissor.ui.component.BackgroundImage
 import com.dzikri.suwlitrockpaperscissor.ui.theme.lilitaOneFamily
-import kotlinx.coroutines.delay
-import android.util.Log
-import android.util.Size
 import androidx.compose.foundation.Image
 import com.dzikri.suwlitrockpaperscissor.R
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.material3.Button
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -51,39 +43,99 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil3.compose.rememberAsyncImagePainter
-import coil3.compose.rememberConstraintsSizeResolver
-import coil3.request.ImageRequest
 import com.dzikri.suwlitrockpaperscissor.data.model.GameStartingStatus
 import com.dzikri.suwlitrockpaperscissor.data.model.ResultOf
 import com.dzikri.suwlitrockpaperscissor.data.viewmodel.GameViewModel
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Icon
+import androidx.compose.ui.Alignment
+import com.dzikri.suwlitrockpaperscissor.data.enums.Move
+import android.util.Log
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.runtime.DisposableEffect
+
 
 @Composable
 fun GameScreen(navController: NavController,innerPaddingValues: PaddingValues,roomId: String?,viewModel: GameViewModel = hiltViewModel()) {
 
-    var bool by remember { mutableStateOf(true) }
     val roomStatus by viewModel.gameInitStatus.collectAsStateWithLifecycle()
-    val timerCountDown = viewModel.timerCount.collectAsStateWithLifecycle()
+    val timerCountDown = viewModel.gameStartTimerCount.collectAsStateWithLifecycle()
+    val roundTimerCountDown = viewModel.roundTimerCount.collectAsStateWithLifecycle()
+    val gameStartingStatus by viewModel.gameStartingStatus.collectAsStateWithLifecycle()
+    var showQuitDialog by remember { mutableStateOf(false) }
+
 
     val mContext = LocalContext.current
-    val mMediaPlayer = MediaPlayer.create(mContext, R.raw.countdown)
+    val gameStartCountDownMediaPlayer = remember {
+        MediaPlayer.create(mContext, R.raw.countdown)
+    }
+    val gameBGMMediaPlayer = remember {
+        MediaPlayer.create(mContext, R.raw.gameplay_bg_tetris_theme_piano)
+    }
 
     fun playCountdownSound() {
-        mMediaPlayer.start()
+        gameStartCountDownMediaPlayer.start()
     }
+
+    fun playBGM() {
+        gameBGMMediaPlayer.start()
+    }
+
+    fun clearMediaPlayer(){
+        gameStartCountDownMediaPlayer.release()
+        gameBGMMediaPlayer.release()
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            clearMediaPlayer()
+            viewModel.clearJob()
+        }
+    }
+
+
+    LaunchedEffect(gameStartingStatus) {
+        if(gameStartingStatus){
+            playBGM()
+        }
+    }
+
+    BackHandler {
+        if(roomStatus == ResultOf.Started) {
+            showQuitDialog = true
+        }
+    }
+
+    if (showQuitDialog) {
+        QuitGameDialog(
+            onConfirm = {
+                showQuitDialog = false
+                navController.popBackStack()
+            },
+            onDismiss = {
+                showQuitDialog = false
+            }
+        )
+    }
+
+
 
 
     //Wajib agar tidak terjadi kebocoran ram/memori HP
     fun onPressBack() {
-        mMediaPlayer.release()
+        gameStartCountDownMediaPlayer.release()
+        gameBGMMediaPlayer.release()
         viewModel.clearJob()
         navController.popBackStack()
     }
@@ -104,10 +156,10 @@ fun GameScreen(navController: NavController,innerPaddingValues: PaddingValues,ro
                     viewModel.startGame()
                 }
             } else {
-//                WaitingDialog(
-//                    onDismissRequest = {onPressBack()},
-//                    message = (roomStatus as ResultOf.Success<GameStartingStatus>).value.roomId
-//                )
+                WaitingDialog(
+                    onDismissRequest = {onPressBack()},
+                    message = (roomStatus as ResultOf.Success<GameStartingStatus>).value.roomId
+                )
             }
         }
         is ResultOf.Loading -> LoadingDialog(onDismissRequest = {onPressBack()})
@@ -128,31 +180,153 @@ fun GameScreen(navController: NavController,innerPaddingValues: PaddingValues,ro
         }
     }
 
+
+
     Box(
         modifier = Modifier.fillMaxSize()
     ){
         BackgroundImage(modifier = Modifier.matchParentSize())
+        Text(
+            text = roundTimerCountDown.value.toString(),
+            style = TextStyle(fontSize = 44.sp, fontFamily = lilitaOneFamily, color = Color.White),
+            textAlign = TextAlign.Center,
+            modifier = Modifier.align(Alignment.Center)
+        )
+        PlayerHands()
         Column (modifier = Modifier
             .padding(innerPaddingValues)
         ){
-           SlidingImages()
+            if(gameStartingStatus) {
+                TopComponent()
+            }
+
+            Spacer(modifier = Modifier.weight(1f))
+            if(gameStartingStatus) {
+                Row (
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp),
+                    horizontalArrangement = Arrangement.Center,
+                ){
+                    PlayerButton(Move.Rock,{})
+                    PlayerButton(Move.Paper,{})
+                    PlayerButton(Move.Scissors,{})
+                }
+            }
+
         }
 
     }
 }
 
 @Composable
-fun SlidingImages() {
+fun TopComponent() {
+    Column(modifier = Modifier.fillMaxWidth()) {
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 30.dp),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = "Dreamybull12xxx",
+                style = TextStyle(fontSize = 20.sp, fontFamily = lilitaOneFamily, color = Color.Black),
+                textAlign = TextAlign.Center,
+                modifier = Modifier.width(100.dp)
+            )
+            Image(
+                painter = painterResource(id = R.drawable.logo_horizontal),
+                contentDescription = "Logo",
+                modifier = Modifier.weight(1f)
+            )
+            Text(
+                text = "You",
+                style = TextStyle(fontSize = 20.sp, fontFamily = lilitaOneFamily, color = Color.Black),
+                textAlign = TextAlign.Center,
+                modifier = Modifier.width(100.dp)
+            )
+        }
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 30.dp)
+            ,
+            verticalAlignment = Alignment.Top
+        ) {
+            PlayerScore(modifier = Modifier.width(100.dp))
+            Spacer(modifier = Modifier.weight(1f))
+            PlayerScore(modifier = Modifier.width(100.dp))
+        }
+    }
+}
+
+
+@Composable
+fun PlayerScore(modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier,horizontalAlignment = Alignment.CenterHorizontally) {
+        Text("Round", fontSize = 12.sp, color = Color.White)
+        Text(
+            text = "0",
+            style = TextStyle(fontSize = 44.sp, fontFamily = lilitaOneFamily, color = Color.White),
+            textAlign = TextAlign.Center,
+        )
+        Text("Game", fontSize = 12.sp, color = Color.White)
+        Text(
+            text = "0",
+            style = TextStyle(fontSize = 44.sp, fontFamily = lilitaOneFamily, color = Color.White),
+            textAlign = TextAlign.Center,
+        )
+    }
+}
+
+@Composable
+fun PlayerButton(move: Move,onClick: () -> Unit) {
+
+    val icon: Int = when(move){
+        Move.Rock -> R.drawable.rock_button
+        Move.Paper -> R.drawable.paper_button
+        Move.Scissors -> R.drawable.scissors_button
+    }
+
+    val bgColor: Color = when(move){
+        Move.Rock -> Color(0xFFBA1A1A).copy(alpha = 0.7f)
+        Move.Paper -> Color(0xFFD27623).copy(alpha = 0.7f)
+        Move.Scissors -> Color(0xFF27C200).copy(alpha = 0.7f)
+    }
+
+    Box(
+        modifier = Modifier.size(100.dp).then(
+            if(move == Move.Paper) Modifier.offset(y = -50.dp)
+            else Modifier
+        ).background(bgColor, shape = CircleShape).clickable{
+            onClick()
+        }
+    ) {
+        Icon(
+            painter = painterResource(icon),
+            contentDescription = "scissors_button",
+            modifier = Modifier.align(Alignment.Center).size(70.dp).then(
+                if (move == Move.Scissors) Modifier.offset(x = -2.dp)
+                else Modifier
+            )
+        )
+
+    }
+}
+
+@Composable
+fun PlayerHands() {
     var visible by remember { mutableStateOf(true) }
 
     Box(modifier = Modifier.fillMaxSize()) {
         // Toggle button to trigger animation
-        Button(
-            onClick = { visible = !visible },
-            modifier = Modifier.align(Alignment.Center)
-        ) {
-            Text("Toggle Slide")
-        }
+//        Button(
+//            onClick = { visible = !visible },
+//            modifier = Modifier.align(Alignment.Center)
+//        ) {
+//            Text("Toggle Slide")
+//        }
 
         AnimatedVisibility(
             visible = visible,
@@ -177,7 +351,7 @@ fun SlidingImages() {
                 painter = rememberAsyncImagePainter(R.drawable.humanrock),
                 contentDescription = "Top Image",
                 modifier = Modifier
-                    .rotate(90f),
+                    .rotate(90f).height(350.dp),
                 contentScale = ContentScale.Fit
             )
         }
@@ -206,7 +380,8 @@ fun SlidingImages() {
                 painter = rememberAsyncImagePainter(R.drawable.humanrock),
                 contentDescription = "Bottom Image",
                 modifier = Modifier
-                    .rotate(270f),
+                    .rotate(270f)
+                    .height(350.dp),
                 contentScale = ContentScale.Fit
             )
         }
@@ -345,9 +520,6 @@ fun GameStartDialog(onDismissRequest: () -> Unit,timerCountDown: String) {
             dismissOnBackPress = false
         )
     ) {
-        BackHandler {
-            onDismissRequest()
-        }
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -376,6 +548,46 @@ fun GameStartDialog(onDismissRequest: () -> Unit,timerCountDown: String) {
                     style = TextStyle(fontSize = 30.sp, fontFamily = lilitaOneFamily),
                     textAlign = TextAlign.Center,
                 )
+            }
+        }
+    }
+}
+
+@Composable
+fun QuitGameDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
+    Dialog(
+        onDismissRequest = {},
+        properties = DialogProperties(
+            dismissOnClickOutside = false,
+            dismissOnBackPress = false
+        )
+    ) {
+
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(200.dp)
+                .padding(16.dp),
+            shape = RoundedCornerShape(16.dp),
+        ) {
+            Column(Modifier.padding(16.dp)) {
+                Text("Are you sure you want to quit the game?")
+                Spacer(modifier = Modifier.weight(1f))
+                Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
+                    Button(
+                        onClick = onDismiss,
+                        shape = RoundedCornerShape(8.dp),
+                    ) {
+                        Text("Cancel")
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Button(
+                        onClick = onConfirm,
+                        shape = RoundedCornerShape(8.dp),
+                        ) {
+                        Text("Quit")
+                    }
+                }
             }
         }
     }
