@@ -31,9 +31,9 @@ class HomeViewModel @Inject constructor(
     private val _username = MutableStateFlow("")
     val username: StateFlow<String> = _username.asStateFlow()
 
-
-    private val _isJoiningRoom = MutableStateFlow(false)
-    val isJoiningRoom : StateFlow<Boolean> = _isJoiningRoom.asStateFlow()
+//
+//    private val _isJoiningRoom = MutableStateFlow(false)
+//    val isJoiningRoom : StateFlow<Boolean> = _isJoiningRoom.asStateFlow()
 
     private val _isRoomExist: MutableStateFlow<ResultOf<IsRoomExistResponse>> = MutableStateFlow(
         ResultOf.Started)
@@ -81,10 +81,10 @@ class HomeViewModel @Inject constructor(
             }
         }
     }
-
-    fun joinRoom() {
-        _isJoiningRoom.value = true
-    }
+//
+//    fun joinRoom() {
+//        _isJoiningRoom.value = true
+//    }
 
     fun resetIsRoomExist() {
         _isRoomExist.value = ResultOf.Started

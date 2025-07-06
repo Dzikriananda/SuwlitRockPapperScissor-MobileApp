@@ -203,7 +203,7 @@
     @Composable
     @OptIn(ExperimentalMaterial3Api::class)
     fun PlayComponentOption(gameMode: GameMode,viewModel: HomeViewModel,navController: NavController) {
-        val isJoiningRoom = viewModel.isJoiningRoom.collectAsStateWithLifecycle()
+//        val isJoiningRoom = viewModel.isJoiningRoom.collectAsStateWithLifecycle()
 
         val sheetState =  rememberModalBottomSheetState(skipPartiallyExpanded = true, confirmValueChange = { newState ->
             newState != SheetValue.Hidden //  Stop bottom sheet from hiding on outside press
@@ -215,11 +215,15 @@
         val buttonText: String = if (gameMode == GameMode.Multiplayer) "Multiplayer" else "Vs Bot"
 
         fun closeBottomSheet() {
-            if(!isJoiningRoom.value) {
-                scope.launch {
-                    sheetState.hide()
-                    showBottomSheet = false
-                }
+//            if(!isJoiningRoom.value) {
+//                scope.launch {
+//                    sheetState.hide()
+//                    showBottomSheet = false
+//                }
+//            }
+            scope.launch {
+                sheetState.hide()
+                showBottomSheet = false
             }
         }
 
@@ -427,7 +431,7 @@ fun MultiplayerModalComponent(viewModel: HomeViewModel,navController: NavControl
         Spacer(modifier = Modifier.height(20.dp))
         Button(
             onClick = {
-                viewModel.joinRoom()
+//                viewModel.joinRoom()
                 onJoin.invoke()
                 navController.navigate(route = Screen.Game.route)
 

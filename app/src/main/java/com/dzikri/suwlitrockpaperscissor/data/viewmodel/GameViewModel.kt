@@ -5,6 +5,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dzikri.suwlitrockpaperscissor.data.enums.RoundStatus
 import com.dzikri.suwlitrockpaperscissor.data.model.GameStartingStatus
+import com.dzikri.suwlitrockpaperscissor.data.model.GameState
+import com.dzikri.suwlitrockpaperscissor.data.model.GameStateResponse
 import com.dzikri.suwlitrockpaperscissor.data.model.ResultOf
 import com.dzikri.suwlitrockpaperscissor.data.repository.GameRepository
 import com.dzikri.suwlitrockpaperscissor.data.repository.UserRepository
@@ -43,6 +45,11 @@ class GameViewModel @Inject constructor(private val gameRepository: GameReposito
 
     private var _roundTimerCount: MutableStateFlow<Int> = MutableStateFlow(5)
     val roundTimerCount: StateFlow<Int> = _roundTimerCount.asStateFlow()
+
+    private var _gameStateResponse: MutableStateFlow<GameStateResponse> = MutableStateFlow(GameStateResponse())
+
+    private var _gameState: MutableStateFlow<GameState> = MutableStateFlow(GameState())
+    val gameState: StateFlow<GameState> = _gameState.asStateFlow()
 
    fun createRoom() {
         viewModelScope.launch {
@@ -100,6 +107,8 @@ class GameViewModel @Inject constructor(private val gameRepository: GameReposito
             flow.collect { msg ->
                 Log.d("WsListener", "Received: $msg")
                 val gameStartMessage = gson.fromJson(msg, GameStartingStatus::class.java)
+                Log.d("result", gameStartMessage.toString())
+
                 _gameInitStatus.value = ResultOf.Success(gameStartMessage)
             }
         }
@@ -139,10 +148,37 @@ class GameViewModel @Inject constructor(private val gameRepository: GameReposito
 
     fun startGame() {
         viewModelScope.launch {
+            initGameState()
             gameStartCountDown()
             roundCountDown()
         }
         //TODO
+    }
+
+    suspend fun initGameState() {
+        val myId = userRepository.currentUserId.first()
+        val allIds = (_gameInitStatus.value as ResultOf.Success).value.playersUsername.keys
+
+        var enemyUserId: String? = null
+        for (id in allIds) {
+            if (id != myId) {
+                enemyUserId = id
+                break
+            }
+        }
+
+        val enemyUsername =  (_gameInitStatus.value as ResultOf.Success).value.playersUsername.getValue(enemyUserId!!)
+        val initGameState = GameState(
+           myUsername = userRepository.currentUsername.first(),
+            myScore = 0,
+            myRoundScore = 0,
+            myMove = null,
+            enemyUsername = enemyUsername,
+            enemyMove = null,
+            enemyScore = 0,
+            enemyRoundScore = 0
+        )
+        _gameState.value = initGameState
     }
 
 

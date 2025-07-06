@@ -64,6 +64,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.DisposableEffect
+import com.dzikri.suwlitrockpaperscissor.data.model.GameState
 
 
 @Composable
@@ -73,6 +74,7 @@ fun GameScreen(navController: NavController,innerPaddingValues: PaddingValues,ro
     val timerCountDown = viewModel.gameStartTimerCount.collectAsStateWithLifecycle()
     val roundTimerCountDown = viewModel.roundTimerCount.collectAsStateWithLifecycle()
     val gameStartingStatus by viewModel.gameStartingStatus.collectAsStateWithLifecycle()
+    val gameState by viewModel.gameState.collectAsStateWithLifecycle()
     var showQuitDialog by remember { mutableStateOf(false) }
 
 
@@ -197,7 +199,7 @@ fun GameScreen(navController: NavController,innerPaddingValues: PaddingValues,ro
             .padding(innerPaddingValues)
         ){
             if(gameStartingStatus) {
-                TopComponent()
+                TopComponent(gameState)
             }
 
             Spacer(modifier = Modifier.weight(1f))
@@ -218,20 +220,20 @@ fun GameScreen(navController: NavController,innerPaddingValues: PaddingValues,ro
 }
 
 @Composable
-fun TopComponent() {
+fun TopComponent(gameState: GameState) {
     Column(modifier = Modifier.fillMaxWidth()) {
 
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 30.dp),
+                .padding(horizontal = 10.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = "Dreamybull12xxx",
+                text = gameState.enemyUsername,
                 style = TextStyle(fontSize = 20.sp, fontFamily = lilitaOneFamily, color = Color.Black),
                 textAlign = TextAlign.Center,
-                modifier = Modifier.width(100.dp)
+                modifier = Modifier.width(110.dp)
             )
             Image(
                 painter = painterResource(id = R.drawable.logo_horizontal),
@@ -239,41 +241,41 @@ fun TopComponent() {
                 modifier = Modifier.weight(1f)
             )
             Text(
-                text = "You",
+                text = gameState.myUsername + "\n(You)",
                 style = TextStyle(fontSize = 20.sp, fontFamily = lilitaOneFamily, color = Color.Black),
                 textAlign = TextAlign.Center,
-                modifier = Modifier.width(100.dp)
+                modifier = Modifier.width(110.dp)
             )
         }
 
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 30.dp)
+                .padding(horizontal = 10.dp)
             ,
             verticalAlignment = Alignment.Top
         ) {
-            PlayerScore(modifier = Modifier.width(100.dp))
+            PlayerScore(modifier = Modifier.width(110.dp),roundScore = gameState.enemyRoundScore.toString(),gameScore = gameState.enemyScore.toString())
             Spacer(modifier = Modifier.weight(1f))
-            PlayerScore(modifier = Modifier.width(100.dp))
+            PlayerScore(modifier = Modifier.width(110.dp),roundScore = gameState.myRoundScore.toString(),gameScore = gameState.myScore.toString())
         }
     }
 }
 
 
 @Composable
-fun PlayerScore(modifier: Modifier = Modifier) {
+fun PlayerScore(modifier: Modifier = Modifier,roundScore: String,gameScore: String) {
     Column(
         modifier = modifier,horizontalAlignment = Alignment.CenterHorizontally) {
         Text("Round", fontSize = 12.sp, color = Color.White)
         Text(
-            text = "0",
+            text = roundScore,
             style = TextStyle(fontSize = 44.sp, fontFamily = lilitaOneFamily, color = Color.White),
             textAlign = TextAlign.Center,
         )
         Text("Game", fontSize = 12.sp, color = Color.White)
         Text(
-            text = "0",
+            text = gameScore,
             style = TextStyle(fontSize = 44.sp, fontFamily = lilitaOneFamily, color = Color.White),
             textAlign = TextAlign.Center,
         )
