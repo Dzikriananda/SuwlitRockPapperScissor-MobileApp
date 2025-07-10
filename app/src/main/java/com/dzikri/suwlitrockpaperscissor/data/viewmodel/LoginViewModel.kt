@@ -4,24 +4,17 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dzikri.suwlitrockpaperscissor.data.model.InputFieldState
-import com.dzikri.suwlitrockpaperscissor.data.model.LoginData
-import com.dzikri.suwlitrockpaperscissor.data.model.LoginResponse
+import com.dzikri.suwlitrockpaperscissor.data.model.response.LoginResponse
 import com.dzikri.suwlitrockpaperscissor.data.model.ResultOf
-import com.dzikri.suwlitrockpaperscissor.data.model.UserPreferences
 import com.dzikri.suwlitrockpaperscissor.data.repository.UserRepository
 import com.dzikri.suwlitrockpaperscissor.util.ErrorHandler
 import com.dzikri.suwlitrockpaperscissor.util.StringHelper
-import com.google.gson.Gson
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
@@ -31,8 +24,8 @@ class LoginViewModel @Inject constructor(
     private val _usernameOrEmailInput = MutableStateFlow(InputFieldState())
     val usernameOrEmailInput: StateFlow<InputFieldState> = _usernameOrEmailInput.asStateFlow()
 
-    private val _passwordInput = MutableStateFlow(InputFieldState())
-    val passwordInput: StateFlow<InputFieldState> = _passwordInput.asStateFlow()
+        private val _passwordInput = MutableStateFlow(InputFieldState())
+        val passwordInput: StateFlow<InputFieldState> = _passwordInput.asStateFlow()
 
     private val _loginResponse = MutableStateFlow<ResultOf<LoginResponse>>(ResultOf.Started)
     val loginResponse: StateFlow<ResultOf<LoginResponse>> = _loginResponse.asStateFlow()

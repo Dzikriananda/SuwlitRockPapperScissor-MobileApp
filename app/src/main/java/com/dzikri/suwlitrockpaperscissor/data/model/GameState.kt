@@ -2,7 +2,7 @@ package com.dzikri.suwlitrockpaperscissor.data.model
 
 import com.dzikri.suwlitrockpaperscissor.data.enums.Move
 
-class GameState(
+data class GameState(
     var myUsername: String = "",
     var myMove: Move? = null,
     var myScore: Int = 0,

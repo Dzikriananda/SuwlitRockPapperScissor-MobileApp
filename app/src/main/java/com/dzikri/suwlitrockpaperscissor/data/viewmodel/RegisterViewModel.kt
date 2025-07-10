@@ -1,23 +1,19 @@
 package com.dzikri.suwlitrockpaperscissor.data.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dzikri.suwlitrockpaperscissor.data.model.InputFieldState
-import com.dzikri.suwlitrockpaperscissor.data.model.LoginResponse
 import com.dzikri.suwlitrockpaperscissor.data.model.RegisterResponse
 import com.dzikri.suwlitrockpaperscissor.data.model.ResultOf
 import com.dzikri.suwlitrockpaperscissor.data.repository.UserRepository
 import com.dzikri.suwlitrockpaperscissor.util.ErrorHandler
 import com.dzikri.suwlitrockpaperscissor.util.StringHelper
-import com.google.gson.Gson
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import kotlinx.coroutines.delay
 
 @HiltViewModel
 class RegisterViewModel @Inject constructor(

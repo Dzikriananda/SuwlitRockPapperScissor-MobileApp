@@ -208,9 +208,15 @@ fun GameScreen(navController: NavController,innerPaddingValues: PaddingValues,ro
                     modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp),
                     horizontalArrangement = Arrangement.Center,
                 ){
-                    PlayerButton(Move.Rock,{})
-                    PlayerButton(Move.Paper,{})
-                    PlayerButton(Move.Scissors,{})
+                    PlayerButton(Move.Rock,{
+                        viewModel.setMove(Move.Rock)
+                    })
+                    PlayerButton(Move.Paper,{
+                        viewModel.setMove(Move.Paper)
+                    })
+                    PlayerButton(Move.Scissors,{
+                        viewModel.setMove(Move.Scissors)
+                    })
                 }
             }
 

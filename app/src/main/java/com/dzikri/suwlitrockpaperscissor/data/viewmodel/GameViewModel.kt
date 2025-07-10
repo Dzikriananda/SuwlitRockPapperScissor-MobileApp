@@ -3,14 +3,16 @@ package com.dzikri.suwlitrockpaperscissor.data.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.dzikri.suwlitrockpaperscissor.data.enums.Move
 import com.dzikri.suwlitrockpaperscissor.data.enums.RoundStatus
 import com.dzikri.suwlitrockpaperscissor.data.model.GameStartingStatus
 import com.dzikri.suwlitrockpaperscissor.data.model.GameState
-import com.dzikri.suwlitrockpaperscissor.data.model.GameStateResponse
+import com.dzikri.suwlitrockpaperscissor.data.model.response.GameStateResponse
 import com.dzikri.suwlitrockpaperscissor.data.model.ResultOf
 import com.dzikri.suwlitrockpaperscissor.data.repository.GameRepository
 import com.dzikri.suwlitrockpaperscissor.data.repository.UserRepository
 import com.dzikri.suwlitrockpaperscissor.util.ErrorHandler
+import com.dzikri.suwlitrockpaperscissor.util.StringHelper
 import com.google.gson.Gson
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CompletableDeferred
@@ -39,6 +41,7 @@ class GameViewModel @Inject constructor(private val gameRepository: GameReposito
     private var _roundStatus: MutableStateFlow<RoundStatus> = MutableStateFlow(RoundStatus.Idle)
     val roundStatus: StateFlow<RoundStatus> = _roundStatus.asStateFlow()
 
+    private var _roomId = ""
 
     private var _gameStartTimerCount: MutableStateFlow<Int> = MutableStateFlow(5)
     val gameStartTimerCount: StateFlow<Int> = _gameStartTimerCount.asStateFlow()
@@ -102,18 +105,83 @@ class GameViewModel @Inject constructor(private val gameRepository: GameReposito
         val collectionStarted = CompletableDeferred<Unit>()
 
         gameInitJob = viewModelScope.launch {
+            Log.d("log","Collection Starting")
             collectionStarted.complete(Unit) // Notify collection has started
 
             flow.collect { msg ->
                 Log.d("WsListener", "Received: $msg")
                 val gameStartMessage = gson.fromJson(msg, GameStartingStatus::class.java)
                 Log.d("result", gameStartMessage.toString())
-
                 _gameInitStatus.value = ResultOf.Success(gameStartMessage)
+                _roomId = gameStartMessage.roomId
             }
         }
 
         collectionStarted.await() // Wait until collection start
+    }
+
+    private suspend fun subscribeToGameStatus() {
+        val flow = gameRepository.subscribeToGameState(userID)
+        val gson = Gson()
+
+        val collectionStarted = CompletableDeferred<Unit>()
+
+        gameInitJob = viewModelScope.launch {
+            collectionStarted.complete(Unit) // Notify collection has started
+
+            flow.collect { msg ->
+                Log.d("WsListener", "Received: $msg")
+                val gameStateMessage = gson.fromJson(msg, GameStateResponse::class.java)
+                Log.d("result", gameStateMessage.toString())
+                setGameState(gameStateMessage)
+            }
+        }
+
+        collectionStarted.await() // Wait until collection start
+    }
+
+    fun setGameState(gameStateResponse: GameStateResponse) {
+
+        var playerScore: Int? = null
+        var enemyScore: Int? = null
+        var playerRoundsScore: Int? = null
+        var enemyRoundsScore: Int? = null
+        lateinit var enemyId: String
+        gameStateResponse.playersScore.forEach {
+            entry ->
+            Log.d("setgametstate", "id: ${entry.key}")
+            if(entry.key == userID) {
+                    playerScore = entry.value
+                } else {
+                    enemyScore = entry.value
+                    enemyId = entry.key
+                    Log.d("setgametstate", "enemyId: $enemyId and ${entry.key}")
+                }
+
+        }
+        gameStateResponse.playersRoundScore.forEach {
+            entry ->
+            if(entry.key == userID) {
+                playerRoundsScore = entry.value
+            } else {
+                enemyRoundsScore = entry.value
+            }
+        }
+
+        val enemyMove = StringHelper.parseMove(gameStateResponse.playersMove.get(enemyId))
+        val myMove = StringHelper.parseMove(gameStateResponse.playersMove.get(userID))
+        val updatedState = _gameState.value.copy(
+            enemyMove = enemyMove,
+            enemyScore = enemyScore!!,
+            enemyRoundScore = enemyRoundsScore!!,
+            myScore = playerScore!!,
+            myRoundScore = playerRoundsScore!!,
+            myMove = myMove
+        )
+        _gameState.value = updatedState
+
+
+
     }
 
     fun setInitStatusToStarted() {
@@ -136,18 +204,19 @@ class GameViewModel @Inject constructor(private val gameRepository: GameReposito
 
 
     suspend fun roundCountDown() {
-        Log.d("tag","round countdown started")
         _roundStatus.value = RoundStatus.Started
         while(_roundTimerCount.value > 0) {
             Log.d("tag",_roundTimerCount.value.toString())
             delay(1000)
             _roundTimerCount.value = _roundTimerCount.value - 1
         }
+        sendMove()
         _roundStatus.value = RoundStatus.Ended
     }
 
     fun startGame() {
         viewModelScope.launch {
+            subscribeToGameStatus()
             initGameState()
             gameStartCountDown()
             roundCountDown()
@@ -190,6 +259,16 @@ class GameViewModel @Inject constructor(private val gameRepository: GameReposito
             } catch (e: Exception) {
                 Log.e("tag", "Error during disconnect", e)
             }
+        }
+    }
+
+    fun setMove(move: Move) {
+        _gameState.value.myMove = move
+    }
+
+    fun sendMove() {
+        viewModelScope.launch {
+            gameRepository.sendMove(userID,_roomId,_gameState.value.myMove!!)
         }
     }
 

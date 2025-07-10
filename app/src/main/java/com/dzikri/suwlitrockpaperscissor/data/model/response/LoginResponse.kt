@@ -1,4 +1,4 @@
-package com.dzikri.suwlitrockpaperscissor.data.model
+package com.dzikri.suwlitrockpaperscissor.data.model.response
 
 data class LoginResponse(
     val status: String,

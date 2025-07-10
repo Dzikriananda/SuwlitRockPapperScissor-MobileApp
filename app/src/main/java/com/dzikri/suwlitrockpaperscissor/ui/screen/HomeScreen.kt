@@ -68,7 +68,7 @@
     import com.dzikri.suwlitrockpaperscissor.R
     import com.dzikri.suwlitrockpaperscissor.data.enums.GameMode
     import com.dzikri.suwlitrockpaperscissor.data.model.InputFieldState
-    import com.dzikri.suwlitrockpaperscissor.data.model.IsRoomExistResponse
+    import com.dzikri.suwlitrockpaperscissor.data.model.response.IsRoomExistResponse
     import com.dzikri.suwlitrockpaperscissor.data.model.ResultOf
     import com.dzikri.suwlitrockpaperscissor.data.viewmodel.HomeViewModel
     import com.dzikri.suwlitrockpaperscissor.ui.component.BackgroundImage

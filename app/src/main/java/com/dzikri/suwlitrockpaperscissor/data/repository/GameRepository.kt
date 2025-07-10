@@ -1,7 +1,8 @@
 package com.dzikri.suwlitrockpaperscissor.data.repository
 
 import android.util.Log
-import com.dzikri.suwlitrockpaperscissor.data.model.IsRoomExistResponse
+import com.dzikri.suwlitrockpaperscissor.data.enums.Move
+import com.dzikri.suwlitrockpaperscissor.data.model.response.IsRoomExistResponse
 import com.dzikri.suwlitrockpaperscissor.data.network.GameApiInterface
 import com.dzikri.suwlitrockpaperscissor.data.network.WebSocketInstance
 import com.google.gson.Gson
@@ -41,31 +42,31 @@ class GameRepository @Inject constructor(
     }
 
     suspend fun joinRoom(userId: String,roomId: String) {
-        Log.d("game repo","creating room")
+        Log.d("game repo","join room")
         val payload = mapOf<String, String>("userId" to userId,"roomId" to roomId)
         val body = Gson().toJson(payload).toString()
         session?.sendText(destination = "/app/join-room", body = body).toString()
     }
 
-
-
-    suspend fun joinRoom(roomId: String, userId: String,token: String) {
-        client = webSocketInstance.client
-        session = client?.connect(webSocketInstance.WsUrl(userId,token))
-        session?.sendText(destination = "/app/join-room", body = mapOf<String, String>(
-            "roomId" to roomId,
-            "userId" to userId
-            ).toString()
-        )
-    }
-
     suspend fun subscribeToGameStartingStatus(userId: String,token: String): Flow<String> {
+        Log.d("log","subscribe to game starting status with userID ${userId}")
         val subscription: Flow<String> = session!!.subscribeText("/user/${userId}/queue/game-status")
         return subscription
     }
 
     suspend fun checkIfRoomExist(roomId: String): Response<IsRoomExistResponse> {
         return gameApiClient.fetchRoomExistStatus(roomId)
+    }
+
+    suspend fun sendMove(userId: String, roomId: String, move: Move) {
+        val payload = mapOf<String, String>("userId" to userId,"roomId" to roomId,"move" to move.toString())
+        val body = Gson().toJson(payload).toString()
+        session?.sendText(destination = "/app/room",body = body)
+    }
+
+    suspend fun subscribeToGameState(userId: String): Flow<String> {
+        val subscription: Flow<String> = session!!.subscribeText("/user/${userId}/room/game-status")
+        return subscription
     }
 
 

@@ -1,5 +1,6 @@
 package com.dzikri.suwlitrockpaperscissor.util
 
+import com.dzikri.suwlitrockpaperscissor.data.enums.Move
 import com.dzikri.suwlitrockpaperscissor.data.model.InputFieldState
 
 object StringHelper {
@@ -98,5 +99,16 @@ object StringHelper {
         }
         return inputFieldState
     }
+
+    fun parseMove(moveStr: String?): Move? {
+        return try {
+            moveStr?.lowercase()?.replaceFirstChar { it.uppercase() }?.let {
+                Move.valueOf(it)
+            }
+        } catch (e: IllegalArgumentException) {
+            null
+        }
+    }
+
 
 }

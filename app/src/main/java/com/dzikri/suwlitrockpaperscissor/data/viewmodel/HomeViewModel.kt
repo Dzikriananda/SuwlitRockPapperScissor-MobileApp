@@ -4,7 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dzikri.suwlitrockpaperscissor.data.model.InputFieldState
-import com.dzikri.suwlitrockpaperscissor.data.model.IsRoomExistResponse
+import com.dzikri.suwlitrockpaperscissor.data.model.response.IsRoomExistResponse
 import com.dzikri.suwlitrockpaperscissor.data.model.ResultOf
 import com.dzikri.suwlitrockpaperscissor.data.network.WebSocketInstance
 import com.dzikri.suwlitrockpaperscissor.data.repository.GameRepository
