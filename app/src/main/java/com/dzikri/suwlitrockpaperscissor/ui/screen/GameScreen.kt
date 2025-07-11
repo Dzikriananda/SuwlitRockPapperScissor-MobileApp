@@ -60,11 +60,27 @@ import androidx.compose.material3.Icon
 import androidx.compose.ui.Alignment
 import com.dzikri.suwlitrockpaperscissor.data.enums.Move
 import android.util.Log
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.core.updateTransition
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.with
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
+import coil3.compose.AsyncImagePainter
+import coil3.request.ImageRequest
 import com.dzikri.suwlitrockpaperscissor.data.model.GameState
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 
 @Composable
@@ -170,6 +186,7 @@ fun GameScreen(navController: NavController,innerPaddingValues: PaddingValues,ro
             onRetryRequest = {onRetry()},
             (roomStatus as ResultOf.Failure).message!!
         )
+        is ResultOf.Failure -> PlayerHands()
         is ResultOf.Started -> {}
     }
 
@@ -257,8 +274,7 @@ fun TopComponent(gameState: GameState) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 10.dp)
-            ,
+                .padding(horizontal = 10.dp),
             verticalAlignment = Alignment.Top
         ) {
             PlayerScore(modifier = Modifier.width(110.dp),roundScore = gameState.enemyRoundScore.toString(),gameScore = gameState.enemyScore.toString())
@@ -323,18 +339,77 @@ fun PlayerButton(move: Move,onClick: () -> Unit) {
     }
 }
 
+
+/*
+        Pakai memoricachekey untuk memaksa painter agar rebuild
+        karena jika tidak, maka painter tidak akan rebuild jika res image yang diassign sama dengan previous valuenya
+        misal current value adalah R.drawable.humanrock, lalu diassign lagi R.drawable.humanrock,
+        maka karena sama2 R.drawable.humanrock, painter menganggap objek yang sama
+        lalu menganggap tidak memerlukan redraw
+ */
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun PlayerHands() {
-    var visible by remember { mutableStateOf(true) }
+    val scope = rememberCoroutineScope()
+    var reloadKey by remember { mutableStateOf(System.currentTimeMillis()) }    // sebagai unique key agar memaksa painter rebuild jika value sama
+    var bottomImageRes by remember { mutableStateOf(R.drawable.humanrock) }
+    var topImageRes by remember { mutableStateOf(R.drawable.humanrock) }
+    var visible by remember { mutableStateOf(false) }
+    val isBothImageReady = remember { mutableStateMapOf("bottom" to false, "top" to false) }
+    val bottomPainter = rememberAsyncImagePainter(
+        model = ImageRequest.Builder(LocalContext.current)
+            .data(bottomImageRes)
+            .memoryCacheKey(reloadKey.toString())
+            .build()
+    )
+    val topPainter = rememberAsyncImagePainter(
+        model = ImageRequest.Builder(LocalContext.current)
+            .data(topImageRes)
+            .memoryCacheKey(reloadKey.toString())
+            .build()
+    )
+    val bottomState by bottomPainter.state.collectAsState()
+    val topState by topPainter.state.collectAsState()
+
+    LaunchedEffect(bottomState) {
+        if (bottomState is AsyncImagePainter.State.Success) {
+            isBothImageReady.set("bottom", true)
+        }
+    }
+    LaunchedEffect(topState) {
+        if (topState is AsyncImagePainter.State.Success) {
+            Log.d("state","set to true")
+            isBothImageReady.set("top", true)
+        }
+    }
+    LaunchedEffect(isBothImageReady["top"], isBothImageReady["bottom"]) {
+        Log.d("state","list ketrigger")
+        if (isBothImageReady.values.all { it }) {
+            visible = true
+        }
+    }
+
+
 
     Box(modifier = Modifier.fillMaxSize()) {
         // Toggle button to trigger animation
-//        Button(
-//            onClick = { visible = !visible },
-//            modifier = Modifier.align(Alignment.Center)
-//        ) {
-//            Text("Toggle Slide")
-//        }
+        Button(
+            onClick = {
+               scope.launch {
+                   visible = false
+                   for (key in isBothImageReady.keys) {
+                       isBothImageReady[key] = false
+                   }
+                   delay(1300)
+                   reloadKey = System.currentTimeMillis()
+                   bottomImageRes = R.drawable.humanrock
+                   topImageRes = R.drawable.humanrock
+               }
+            },
+            modifier = Modifier.align(Alignment.Center)
+        ) {
+            Text("Toggle Slide")
+        }
 
         AnimatedVisibility(
             visible = visible,
@@ -356,7 +431,7 @@ fun PlayerHands() {
                 .align(Alignment.TopCenter)
         ) {
             Image(
-                painter = rememberAsyncImagePainter(R.drawable.humanrock),
+                painter = topPainter,
                 contentDescription = "Top Image",
                 modifier = Modifier
                     .rotate(90f).height(350.dp),
@@ -364,7 +439,7 @@ fun PlayerHands() {
             )
         }
 
-        // Bottom image: slide in from bottom, out to bottom
+//         Bottom image: slide in from bottom, out to bottom
         AnimatedVisibility(
             visible = visible,
             enter = slideInVertically(
@@ -385,7 +460,7 @@ fun PlayerHands() {
                 .align(Alignment.BottomCenter)
         ) {
             Image(
-                painter = rememberAsyncImagePainter(R.drawable.humanrock),
+                painter = bottomPainter,
                 contentDescription = "Bottom Image",
                 modifier = Modifier
                     .rotate(270f)
