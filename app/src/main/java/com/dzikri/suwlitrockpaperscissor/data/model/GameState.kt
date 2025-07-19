@@ -11,4 +11,5 @@ data class GameState(
     var enemyMove: Move? = null,
     var enemyScore: Int = 0,
     var enemyRoundScore: Int = 0,
+    var totalMoves: Int = 0
 )

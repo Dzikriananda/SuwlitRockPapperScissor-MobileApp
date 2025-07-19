@@ -13,7 +13,7 @@ import androidx.navigation.navArgument
 import com.dzikri.suwlitrockpaperscissor.ui.component.SetNavBarColor
 import com.dzikri.suwlitrockpaperscissor.ui.navigation.Screen
 import com.dzikri.suwlitrockpaperscissor.ui.screen.GameScreen
-import com.dzikri.suwlitrockpaperscissor.ui.screen.HomeScreen
+import com.dzikri.suwlitrockpaperscissor.ui.screen.home_screen.HomeScreen
 import com.dzikri.suwlitrockpaperscissor.ui.screen.LoginScreen
 import com.dzikri.suwlitrockpaperscissor.ui.screen.RegisterScreen
 import com.dzikri.suwlitrockpaperscissor.ui.screen.SplashScreen

@@ -57,25 +57,17 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
-import androidx.compose.ui.Alignment
 import com.dzikri.suwlitrockpaperscissor.data.enums.Move
 import android.util.Log
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.animation.core.updateTransition
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.with
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.text.font.FontWeight
 import coil3.compose.AsyncImagePainter
 import coil3.request.ImageRequest
 import com.dzikri.suwlitrockpaperscissor.data.model.GameState
@@ -92,6 +84,7 @@ fun GameScreen(navController: NavController,innerPaddingValues: PaddingValues,ro
     val gameStartingStatus by viewModel.gameStartingStatus.collectAsStateWithLifecycle()
     val gameState by viewModel.gameState.collectAsStateWithLifecycle()
     var showQuitDialog by remember { mutableStateOf(false) }
+    val isAnimationShowing by viewModel.isAnimationShowing.collectAsStateWithLifecycle()
 
 
     val mContext = LocalContext.current
@@ -186,7 +179,6 @@ fun GameScreen(navController: NavController,innerPaddingValues: PaddingValues,ro
             onRetryRequest = {onRetry()},
             (roomStatus as ResultOf.Failure).message!!
         )
-        is ResultOf.Failure -> PlayerHands()
         is ResultOf.Started -> {}
     }
 
@@ -205,13 +197,24 @@ fun GameScreen(navController: NavController,innerPaddingValues: PaddingValues,ro
         modifier = Modifier.fillMaxSize()
     ){
         BackgroundImage(modifier = Modifier.matchParentSize())
-        Text(
-            text = roundTimerCountDown.value.toString(),
-            style = TextStyle(fontSize = 44.sp, fontFamily = lilitaOneFamily, color = Color.White),
-            textAlign = TextAlign.Center,
-            modifier = Modifier.align(Alignment.Center)
+        if(!isAnimationShowing) {
+            Text(
+                text = roundTimerCountDown.value.toString(),
+                style = TextStyle(fontSize = 44.sp, fontFamily = lilitaOneFamily, color = Color.White),
+                textAlign = TextAlign.Center,
+                modifier = Modifier.align(Alignment.Center)
+            )
+        }
+        PlayerHands(
+            gameState,
+            { viewModel.roundCountDown() },
+            {isShowing -> viewModel.setIsAnimationShowing(isShowing)},
+            gameStartingStatus,
+            {
+                Log.d("close game end dialog","close game end dialog at ${System.currentTimeMillis()}")
+                navController.popBackStack()
+            }
         )
-        PlayerHands()
         Column (modifier = Modifier
             .padding(innerPaddingValues)
         ){
@@ -347,15 +350,18 @@ fun PlayerButton(move: Move,onClick: () -> Unit) {
         maka karena sama2 R.drawable.humanrock, painter menganggap objek yang sama
         lalu menganggap tidak memerlukan redraw
  */
-@OptIn(ExperimentalAnimationApi::class)
 @Composable
-fun PlayerHands() {
+fun PlayerHands(gameState: GameState,onFinishedShowedImage: suspend () -> Unit,onAnimationShowing: (Boolean) -> Unit,isGameStarted: Boolean,onFinishedGameFunction: () -> Unit) {
     val scope = rememberCoroutineScope()
     var reloadKey by remember { mutableStateOf(System.currentTimeMillis()) }    // sebagai unique key agar memaksa painter rebuild jika value sama
     var bottomImageRes by remember { mutableStateOf(R.drawable.humanrock) }
     var topImageRes by remember { mutableStateOf(R.drawable.humanrock) }
     var visible by remember { mutableStateOf(false) }
+    var showBetweenRoundDialog by remember { mutableStateOf(false) }
     val isBothImageReady = remember { mutableStateMapOf("bottom" to false, "top" to false) }
+    val areBothImagesReady by remember {
+        derivedStateOf { isBothImageReady.values.all { it } }
+    }
     val bottomPainter = rememberAsyncImagePainter(
         model = ImageRequest.Builder(LocalContext.current)
             .data(bottomImageRes)
@@ -371,46 +377,104 @@ fun PlayerHands() {
     val bottomState by bottomPainter.state.collectAsState()
     val topState by topPainter.state.collectAsState()
 
+    //Menunggu agar painter selesai load gambar , baru set visible menjadi true
     LaunchedEffect(bottomState) {
         if (bottomState is AsyncImagePainter.State.Success) {
-            isBothImageReady.set("bottom", true)
+            isBothImageReady["bottom"] = true
         }
     }
     LaunchedEffect(topState) {
         if (topState is AsyncImagePainter.State.Success) {
-            Log.d("state","set to true")
-            isBothImageReady.set("top", true)
+            isBothImageReady["top"] = true
         }
     }
-    LaunchedEffect(isBothImageReady["top"], isBothImageReady["bottom"]) {
-        Log.d("state","list ketrigger")
-        if (isBothImageReady.values.all { it }) {
+
+    if(showBetweenRoundDialog) {
+        if(gameState.totalMoves == 15) {
+            if(gameState.myRoundScore > gameState.enemyRoundScore) {
+                GameEndDialog(R.drawable.win,onFinishedGameFunction)
+            } else if (gameState.myRoundScore < gameState.enemyRoundScore) {
+                GameEndDialog(R.drawable.lose,onFinishedGameFunction)
+            } else {
+                GameEndDialog(R.drawable.draw,onFinishedGameFunction)
+
+            }
+        } else {
+            val title = when(gameState.totalMoves) {
+                5 -> {
+                    "Second Round"
+                }
+
+                10 -> {
+                    "Final Round"
+                }
+
+                else -> {
+                    ""
+                }
+            }
+            BetweenRoundDialog(title)
+        }
+    }
+
+    LaunchedEffect(areBothImagesReady) {
+        if (areBothImagesReady) {
             visible = true
+            if (isGameStarted) {
+                scope.launch {
+                    if(gameState.totalMoves == 15) {
+                        showBetweenRoundDialog = true
+                    } else if ((gameState.totalMoves % 5) == 0) {
+                        showBetweenRoundDialog = true
+                        delay(5000)
+                        showBetweenRoundDialog = false
+                    } else {
+                        delay(1000)
+                    }
+
+                    if(gameState.totalMoves != 15) {
+                        onAnimationShowing(false)
+                        onFinishedShowedImage()
+                    }
+                }
+            } else {
+                onAnimationShowing(false)
+
+            }
         }
     }
+
+
+    LaunchedEffect(gameState) {
+        onAnimationShowing(true)
+        val topImageId = when(gameState.myMove) {
+            Move.Rock -> R.drawable.humanrock
+            Move.Paper -> R.drawable.humanpaper
+            Move.Scissors -> R.drawable.humanscissors
+            null -> R.drawable.humanrock
+        }
+
+        val bottomImageId = when(gameState.enemyMove) {
+            Move.Rock -> R.drawable.humanrock
+            Move.Paper -> R.drawable.humanpaper
+            Move.Scissors -> R.drawable.humanscissors
+            null -> R.drawable.humanrock
+        }
+        visible = false
+        for (key in isBothImageReady.keys) {
+            isBothImageReady[key] = false
+        }
+        delay(1300)
+        reloadKey = System.currentTimeMillis()
+        topImageRes = topImageId
+        bottomImageRes = bottomImageId
+        
+    }
+
 
 
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // Toggle button to trigger animation
-        Button(
-            onClick = {
-               scope.launch {
-                   visible = false
-                   for (key in isBothImageReady.keys) {
-                       isBothImageReady[key] = false
-                   }
-                   delay(1300)
-                   reloadKey = System.currentTimeMillis()
-                   bottomImageRes = R.drawable.humanrock
-                   topImageRes = R.drawable.humanrock
-               }
-            },
-            modifier = Modifier.align(Alignment.Center)
-        ) {
-            Text("Toggle Slide")
-        }
-
         AnimatedVisibility(
             visible = visible,
             enter = slideInVertically(
@@ -438,7 +502,6 @@ fun PlayerHands() {
                 contentScale = ContentScale.Fit
             )
         }
-
 //         Bottom image: slide in from bottom, out to bottom
         AnimatedVisibility(
             visible = visible,
@@ -675,3 +738,69 @@ fun QuitGameDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
         }
     }
 }
+
+
+
+@Composable
+fun BetweenRoundDialog(title: String) {
+    Dialog(
+        onDismissRequest = {},
+        properties = DialogProperties(
+            dismissOnClickOutside = false,
+            dismissOnBackPress = false
+        )
+    ) {
+        BackHandler {}
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(200.dp)
+                .padding(16.dp),
+            shape = RoundedCornerShape(16.dp),
+        ) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = title,
+                    style = TextStyle(fontSize = 56.sp, fontFamily = lilitaOneFamily),
+                    textAlign = TextAlign.Center,
+                )
+            }
+        }
+    }
+}
+
+    @Composable
+    fun GameEndDialog(imageRes: Int,onConfirm: () -> Unit) {
+        Dialog(
+            onDismissRequest = {},
+            properties = DialogProperties(
+                dismissOnClickOutside = false,
+                dismissOnBackPress = false
+            ),
+        ) {
+            Column (
+                modifier = Modifier.fillMaxSize().clickable(
+                    true, onClick = {onConfirm()}
+                ),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ){
+                BackHandler{
+                    onConfirm()
+                }
+                Image(painter = painterResource(imageRes),contentDescription = "Game End")
+                Text(
+                    "Click Anywhere To Close", style = TextStyle(
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    ),
+                    textAlign = TextAlign.Center,
+                )
+            }
+
+        }
+    }

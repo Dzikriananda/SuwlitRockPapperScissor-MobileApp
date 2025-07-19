@@ -24,7 +24,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import okhttp3.internal.cacheGet
 import javax.inject.Inject
+import kotlin.random.Random
 
 
 @HiltViewModel
@@ -54,6 +56,12 @@ class GameViewModel @Inject constructor(private val gameRepository: GameReposito
     private var _gameState: MutableStateFlow<GameState> = MutableStateFlow(GameState())
     val gameState: StateFlow<GameState> = _gameState.asStateFlow()
 
+    private var _isBetweenRoundStatus: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val isBetweenRoundStatus: StateFlow<Boolean> = _isBetweenRoundStatus.asStateFlow()
+
+    private var _isAnimationShowing: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val isAnimationShowing: StateFlow<Boolean> = _isAnimationShowing.asStateFlow()
+
    fun createRoom() {
         viewModelScope.launch {
             _gameInitStatus.value = ResultOf.Loading
@@ -71,6 +79,11 @@ class GameViewModel @Inject constructor(private val gameRepository: GameReposito
                 //TODO SAAT EXCEPTION TIDAK ADA INTERNET MASIH ADA MESSAGE "A resource failed to call close."
             }
         }
+    }
+
+    fun setIsAnimationShowing(isShowing: Boolean) {
+        _isAnimationShowing.value = isShowing
+        Log.d("status animasi"," adalah : ${_isAnimationShowing.value}")
     }
 
     fun joinRoom(roomId: String) {
@@ -136,7 +149,6 @@ class GameViewModel @Inject constructor(private val gameRepository: GameReposito
                 setGameState(gameStateMessage)
             }
         }
-
         collectionStarted.await() // Wait until collection start
     }
 
@@ -168,20 +180,18 @@ class GameViewModel @Inject constructor(private val gameRepository: GameReposito
             }
         }
 
-        val enemyMove = StringHelper.parseMove(gameStateResponse.playersMove.get(enemyId))
-        val myMove = StringHelper.parseMove(gameStateResponse.playersMove.get(userID))
+        val enemyMove = StringHelper.parseMove(gameStateResponse.playerLastMove.get(enemyId))
+        val myMove = StringHelper.parseMove(gameStateResponse.playerLastMove.get(userID))
         val updatedState = _gameState.value.copy(
             enemyMove = enemyMove,
             enemyScore = enemyScore!!,
             enemyRoundScore = enemyRoundsScore!!,
             myScore = playerScore!!,
             myRoundScore = playerRoundsScore!!,
-            myMove = myMove
+            myMove = myMove,
+            totalMoves = gameStateResponse.totalMoves
         )
         _gameState.value = updatedState
-
-
-
     }
 
     fun setInitStatusToStarted() {
@@ -191,6 +201,10 @@ class GameViewModel @Inject constructor(private val gameRepository: GameReposito
     fun retry() {
         setInitStatusToStarted()
         createRoom()
+    }
+
+    fun closeBetweenRoundDialog() {
+        _isBetweenRoundStatus.value = false
     }
 
     suspend fun gameStartCountDown() {
@@ -203,15 +217,18 @@ class GameViewModel @Inject constructor(private val gameRepository: GameReposito
     }
 
 
+    //bug ini kepanggil2x pada saat yg hampir bersamaan
+    //solusinya observe lansung dari play component saja jika terdapat response api
     suspend fun roundCountDown() {
+        Log.d("countdown","count down dipanggil pada : ${System.currentTimeMillis()}")
         _roundStatus.value = RoundStatus.Started
         while(_roundTimerCount.value > 0) {
-            Log.d("tag",_roundTimerCount.value.toString())
             delay(1000)
             _roundTimerCount.value = _roundTimerCount.value - 1
         }
         sendMove()
         _roundStatus.value = RoundStatus.Ended
+        _roundTimerCount.value = 5
     }
 
     fun startGame() {
@@ -268,8 +285,29 @@ class GameViewModel @Inject constructor(private val gameRepository: GameReposito
 
     fun sendMove() {
         viewModelScope.launch {
+            if(_gameState.value.myMove == null){
+                randomizeMove()
+            }
             gameRepository.sendMove(userID,_roomId,_gameState.value.myMove!!)
         }
+    }
+
+    fun randomizeMove() {
+        val list = listOf(1,2,3)
+        val randomNum = list.random()
+        lateinit var randomMove: Move
+        when(randomNum){
+            1 -> {
+                randomMove = Move.Rock
+            }
+            2 -> {
+                randomMove = Move.Paper
+            }
+            3 -> {
+                randomMove = Move.Scissors
+            }
+        }
+        _gameState.value.myMove = randomMove
     }
 
 

@@ -1,33 +1,30 @@
-    package com.dzikri.suwlitrockpaperscissor.ui.screen
+package com.dzikri.suwlitrockpaperscissor.ui.screen.home_screen
 
-    import android.util.Log
-    import androidx.activity.compose.BackHandler
     import androidx.compose.foundation.Image
     import androidx.compose.foundation.background
     import androidx.compose.foundation.border
+    import androidx.compose.foundation.clickable
     import androidx.compose.foundation.layout.Arrangement
     import androidx.compose.foundation.layout.Box
     import androidx.compose.foundation.layout.Column
     import androidx.compose.foundation.layout.PaddingValues
     import androidx.compose.foundation.layout.Row
     import androidx.compose.foundation.layout.Spacer
-    import androidx.compose.foundation.layout.aspectRatio
     import androidx.compose.foundation.layout.fillMaxHeight
     import androidx.compose.foundation.layout.fillMaxSize
     import androidx.compose.foundation.layout.fillMaxWidth
     import androidx.compose.foundation.layout.height
-    import androidx.compose.foundation.layout.offset
     import androidx.compose.foundation.layout.padding
     import androidx.compose.foundation.layout.size
     import androidx.compose.foundation.layout.width
     import androidx.compose.foundation.pager.HorizontalPager
     import androidx.compose.foundation.pager.PagerDefaults
     import androidx.compose.foundation.pager.rememberPagerState
+    import androidx.compose.foundation.rememberScrollState
     import androidx.compose.foundation.shape.RoundedCornerShape
+    import androidx.compose.foundation.verticalScroll
     import androidx.compose.material.icons.Icons
     import androidx.compose.material.icons.automirrored.filled.Logout
-    import androidx.compose.material.icons.filled.Email
-    import androidx.compose.material.icons.filled.Logout
     import androidx.compose.material.icons.filled.People
     import androidx.compose.material3.Button
     import androidx.compose.material3.ButtonDefaults
@@ -52,13 +49,10 @@
     import androidx.compose.ui.Modifier
     import androidx.compose.ui.draw.clip
     import androidx.compose.ui.graphics.Color
-    import androidx.compose.ui.input.pointer.pointerInput
     import androidx.compose.ui.layout.ContentScale
     import androidx.compose.ui.res.painterResource
     import androidx.compose.ui.text.TextStyle
-    import androidx.compose.ui.text.font.FontFamily
     import androidx.compose.ui.text.font.FontWeight
-    import androidx.compose.ui.tooling.preview.Preview
     import androidx.compose.ui.unit.dp
     import androidx.compose.ui.unit.sp
     import androidx.compose.ui.window.SecureFlagPolicy
@@ -67,15 +61,14 @@
     import androidx.navigation.NavController
     import com.dzikri.suwlitrockpaperscissor.R
     import com.dzikri.suwlitrockpaperscissor.data.enums.GameMode
-    import com.dzikri.suwlitrockpaperscissor.data.model.InputFieldState
     import com.dzikri.suwlitrockpaperscissor.data.model.response.IsRoomExistResponse
     import com.dzikri.suwlitrockpaperscissor.data.model.ResultOf
     import com.dzikri.suwlitrockpaperscissor.data.viewmodel.HomeViewModel
     import com.dzikri.suwlitrockpaperscissor.ui.component.BackgroundImage
     import com.dzikri.suwlitrockpaperscissor.ui.component.CustomTextField
     import com.dzikri.suwlitrockpaperscissor.ui.navigation.Screen
+    import com.dzikri.suwlitrockpaperscissor.ui.screen.home_screen.components.TopGlobalComponent
     import com.dzikri.suwlitrockpaperscissor.ui.theme.lilitaOneFamily
-    import com.dzikri.suwlitrockpaperscissor.util.StringHelper
     import kotlinx.coroutines.launch
 
     @Composable
@@ -99,12 +92,48 @@
             BackgroundImage(modifier = Modifier.matchParentSize())
             Column (modifier = Modifier
                 .padding(innerPaddingValues)
-                .padding(horizontal = 25.dp)){
+                .padding(horizontal = 25.dp)
+                .verticalScroll(rememberScrollState())
+            ){
                 TopComponent(viewModel = viewModel, navController = navController)
                 PlayComponent(viewModel = viewModel,navController = navController)
+                TutorialButton()
+                TopGlobalComponent(viewModel = viewModel)
             }
         }
     }
+
+@Composable
+fun TutorialButton() {
+    Box(modifier = Modifier
+        .padding(horizontal = 0.dp, vertical = 5.dp)
+        .height(60.dp)
+        .fillMaxWidth()
+        .clip(RoundedCornerShape(16.dp))
+        .background(Color.White)
+        .clickable(true, onClick = {})
+    ) {
+        Row (
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxSize()
+        ){
+            Image(
+                painter = painterResource(id = R.drawable.game_controller_outline),
+                contentDescription = "Logo",
+                modifier = Modifier.height(40.dp)
+            )
+            Spacer(modifier = Modifier.width(20.dp))
+            Text(
+                text = "Gameplay Tutorial",
+                fontFamily = lilitaOneFamily,
+                fontWeight = FontWeight.Normal,
+                color = Color(0XFF266489),
+                fontSize = 28.sp,
+            )
+        }
+    }
+}
 
     @Composable
     fun TopComponent(viewModel: HomeViewModel,navController: NavController) {

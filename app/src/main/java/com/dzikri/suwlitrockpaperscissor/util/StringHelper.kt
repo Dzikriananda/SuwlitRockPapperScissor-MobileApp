@@ -1,5 +1,6 @@
 package com.dzikri.suwlitrockpaperscissor.util
 
+import android.util.Log
 import com.dzikri.suwlitrockpaperscissor.data.enums.Move
 import com.dzikri.suwlitrockpaperscissor.data.model.InputFieldState
 
@@ -101,6 +102,7 @@ object StringHelper {
     }
 
     fun parseMove(moveStr: String?): Move? {
+        Log.d("parse move",moveStr.toString())
         return try {
             moveStr?.lowercase()?.replaceFirstChar { it.uppercase() }?.let {
                 Move.valueOf(it)
