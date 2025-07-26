@@ -25,6 +25,7 @@ package com.dzikri.suwlitrockpaperscissor.ui.screen.home_screen
     import androidx.compose.foundation.verticalScroll
     import androidx.compose.material.icons.Icons
     import androidx.compose.material.icons.automirrored.filled.Logout
+    import androidx.compose.material.icons.filled.History
     import androidx.compose.material.icons.filled.People
     import androidx.compose.material3.Button
     import androidx.compose.material3.ButtonDefaults
@@ -98,6 +99,7 @@ package com.dzikri.suwlitrockpaperscissor.ui.screen.home_screen
                 TopComponent(viewModel = viewModel, navController = navController)
                 PlayComponent(viewModel = viewModel,navController = navController)
                 TutorialButton()
+                MatchHistoryButton(navController = navController)
                 TopGlobalComponent(viewModel = viewModel)
             }
         }
@@ -114,14 +116,14 @@ fun TutorialButton() {
         .clickable(true, onClick = {})
     ) {
         Row (
-            horizontalArrangement = Arrangement.Center,
+            horizontalArrangement = Arrangement.Start,
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.align(Alignment.Center)
         ){
             Image(
                 painter = painterResource(id = R.drawable.game_controller_outline),
                 contentDescription = "Logo",
-                modifier = Modifier.height(40.dp)
+                modifier = Modifier.size(50.dp)
             )
             Spacer(modifier = Modifier.width(20.dp))
             Text(
@@ -134,6 +136,43 @@ fun TutorialButton() {
         }
     }
 }
+
+@Composable
+fun MatchHistoryButton(navController: NavController) {
+    Box(modifier = Modifier
+        .padding(horizontal = 0.dp, vertical = 5.dp)
+        .height(60.dp)
+        .fillMaxWidth()
+        .clip(RoundedCornerShape(16.dp))
+        .background(Color.White)
+        .clickable(true, onClick = {
+            navController.navigate(route = Screen.History.route)
+        })
+    ) {
+        Row (
+            horizontalArrangement = Arrangement.Start,
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.align(Alignment.Center)
+        ){
+            Icon(
+                imageVector = Icons.Filled.History,
+                contentDescription = "",
+                modifier = Modifier.size(50.dp),
+                tint = Color(0XFF266489)
+            )
+            Spacer(modifier = Modifier.width(20.dp))
+            Text(
+                text = "Match History",
+                fontFamily = lilitaOneFamily,
+                fontWeight = FontWeight.Normal,
+                color = Color(0XFF266489),
+                fontSize = 28.sp,
+                modifier = Modifier
+            )
+        }
+    }
+}
+
 
     @Composable
     fun TopComponent(viewModel: HomeViewModel,navController: NavController) {

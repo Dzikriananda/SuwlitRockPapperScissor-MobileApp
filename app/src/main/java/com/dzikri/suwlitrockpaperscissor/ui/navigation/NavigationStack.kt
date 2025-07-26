@@ -17,6 +17,7 @@ import com.dzikri.suwlitrockpaperscissor.ui.screen.home_screen.HomeScreen
 import com.dzikri.suwlitrockpaperscissor.ui.screen.LoginScreen
 import com.dzikri.suwlitrockpaperscissor.ui.screen.RegisterScreen
 import com.dzikri.suwlitrockpaperscissor.ui.screen.SplashScreen
+import com.dzikri.suwlitrockpaperscissor.ui.screen.history_screen.HistoryScreen
 
 @Composable
 fun NavigationStack(modifier: Modifier = Modifier,innerPaddingValues: PaddingValues) {
@@ -38,6 +39,9 @@ fun NavigationStack(modifier: Modifier = Modifier,innerPaddingValues: PaddingVal
         }
         composable(route = Screen.Home.route) {
             HomeScreen(navController = navController,innerPaddingValues = innerPaddingValues)
+        }
+        composable(route = Screen.History.route) {
+            HistoryScreen(navController = navController,innerPaddingValues = innerPaddingValues)
         }
         composable(
             route = Screen.Game.route + "?roomId={roomId}",

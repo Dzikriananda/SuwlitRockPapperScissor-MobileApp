@@ -164,7 +164,7 @@ class GameViewModel @Inject constructor(private val gameRepository: GameReposito
             Log.d("setgametstate", "id: ${entry.key}")
             if(entry.key == userID) {
                     playerScore = entry.value
-                } else {
+            } else {
                     enemyScore = entry.value
                     enemyId = entry.key
                     Log.d("setgametstate", "enemyId: $enemyId and ${entry.key}")
@@ -179,9 +179,12 @@ class GameViewModel @Inject constructor(private val gameRepository: GameReposito
                 enemyRoundsScore = entry.value
             }
         }
-
+        Log.d("setgametstate", gameStateResponse.playerLastMove.toString())
         val enemyMove = StringHelper.parseMove(gameStateResponse.playerLastMove.get(enemyId))
         val myMove = StringHelper.parseMove(gameStateResponse.playerLastMove.get(userID))
+        Log.d("setgametstate my move", myMove.toString())
+        Log.d("setgametstate enemy move", enemyMove.toString())
+
         val updatedState = _gameState.value.copy(
             enemyMove = enemyMove,
             enemyScore = enemyScore!!,

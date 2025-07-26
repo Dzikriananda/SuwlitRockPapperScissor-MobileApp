@@ -191,8 +191,6 @@ fun GameScreen(navController: NavController,innerPaddingValues: PaddingValues,ro
         }
     }
 
-
-
     Box(
         modifier = Modifier.fillMaxSize()
     ){
@@ -447,14 +445,14 @@ fun PlayerHands(gameState: GameState,onFinishedShowedImage: suspend () -> Unit,o
 
     LaunchedEffect(gameState) {
         onAnimationShowing(true)
-        val topImageId = when(gameState.myMove) {
+        val topImageId = when(gameState.enemyMove) {
             Move.Rock -> R.drawable.humanrock
             Move.Paper -> R.drawable.humanpaper
             Move.Scissors -> R.drawable.humanscissors
             null -> R.drawable.humanrock
         }
 
-        val bottomImageId = when(gameState.enemyMove) {
+        val bottomImageId = when(gameState.myMove) {
             Move.Rock -> R.drawable.humanrock
             Move.Paper -> R.drawable.humanpaper
             Move.Scissors -> R.drawable.humanscissors

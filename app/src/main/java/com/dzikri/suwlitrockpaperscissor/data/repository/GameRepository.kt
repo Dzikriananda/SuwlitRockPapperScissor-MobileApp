@@ -2,10 +2,13 @@ package com.dzikri.suwlitrockpaperscissor.data.repository
 
 import android.util.Log
 import com.dzikri.suwlitrockpaperscissor.data.enums.Move
+import com.dzikri.suwlitrockpaperscissor.data.model.ResultOf
 import com.dzikri.suwlitrockpaperscissor.data.model.response.IsRoomExistResponse
+import com.dzikri.suwlitrockpaperscissor.data.model.response.MatchHistoryResponse
 import com.dzikri.suwlitrockpaperscissor.data.network.GameApiInterface
 import com.dzikri.suwlitrockpaperscissor.data.network.WebSocketInstance
 import com.google.gson.Gson
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import org.hildan.krossbow.stomp.StompClient
@@ -15,6 +18,7 @@ import org.hildan.krossbow.stomp.subscribeText
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import retrofit2.Response
 
 class GameRepository @Inject constructor(
@@ -68,6 +72,16 @@ class GameRepository @Inject constructor(
         val subscription: Flow<String> = session!!.subscribeText("/user/${userId}/room/game-status")
         return subscription
     }
+
+    suspend fun fetchMatchHistory(userId: String): ResultOf<MatchHistoryResponse> =
+        withContext(Dispatchers.IO) {
+            try {
+                val res = gameApiClient.fetchMatchHistory(userId)
+                ResultOf.Success<MatchHistoryResponse>(res.body()!!)
+            } catch (e: Exception) {
+                ResultOf.Failure(e.message, e)
+            }
+        }
 
 
 //    suspend fun simulateErrorCreateRoom(userId: String,token: String) {

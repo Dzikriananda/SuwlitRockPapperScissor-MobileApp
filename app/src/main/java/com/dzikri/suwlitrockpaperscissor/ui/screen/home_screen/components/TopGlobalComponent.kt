@@ -22,7 +22,7 @@ fun TopGlobalComponent(viewModel: HomeViewModel) {
     val rank1 = TopGlobalItem(1,"Dreamybull12",null,900)
     val rank2 = TopGlobalItem(2,"BagastonGastanyo",null,600)
     val rank3 = TopGlobalItem(3,"Ambatukhan",null,400)
-    val rank22 = TopGlobalItem(22,"perrelbrown12",null,150)
+    val rank22 = TopGlobalItem(22,"perrelbrown",null,150)
     val thisPlayerUsername by viewModel.username.collectAsStateWithLifecycle()
 
     val rankList = listOf<TopGlobalItem>(rank1,rank2,rank3,rank22)
