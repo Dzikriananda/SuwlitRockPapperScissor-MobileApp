@@ -1,7 +1,7 @@
 package com.dzikri.suwlitrockpaperscissor.data.network
 
 import com.dzikri.suwlitrockpaperscissor.data.model.response.LoginResponse
-import com.dzikri.suwlitrockpaperscissor.data.model.RegisterResponse
+import com.dzikri.suwlitrockpaperscissor.data.model.response.RegisterResponse
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.POST

@@ -2,7 +2,7 @@ package com.dzikri.suwlitrockpaperscissor.data.repository
 
 import com.dzikri.suwlitrockpaperscissor.data.SessionManager
 import com.dzikri.suwlitrockpaperscissor.data.model.response.LoginResponse
-import com.dzikri.suwlitrockpaperscissor.data.model.RegisterResponse
+import com.dzikri.suwlitrockpaperscissor.data.model.response.RegisterResponse
 import com.dzikri.suwlitrockpaperscissor.data.network.UserApiInterface
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow

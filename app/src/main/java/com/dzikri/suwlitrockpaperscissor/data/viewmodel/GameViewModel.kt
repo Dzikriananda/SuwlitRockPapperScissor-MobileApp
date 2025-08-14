@@ -62,6 +62,8 @@ class GameViewModel @Inject constructor(private val gameRepository: GameReposito
     private var _isAnimationShowing: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val isAnimationShowing: StateFlow<Boolean> = _isAnimationShowing.asStateFlow()
 
+
+
    fun createRoom() {
         viewModelScope.launch {
             _gameInitStatus.value = ResultOf.Loading

@@ -2,9 +2,11 @@ package com.dzikri.suwlitrockpaperscissor.data.repository
 
 import android.util.Log
 import com.dzikri.suwlitrockpaperscissor.data.enums.Move
+import com.dzikri.suwlitrockpaperscissor.data.model.RankData
 import com.dzikri.suwlitrockpaperscissor.data.model.ResultOf
 import com.dzikri.suwlitrockpaperscissor.data.model.response.IsRoomExistResponse
 import com.dzikri.suwlitrockpaperscissor.data.model.response.MatchHistoryResponse
+import com.dzikri.suwlitrockpaperscissor.data.model.response.ResponseWrapper
 import com.dzikri.suwlitrockpaperscissor.data.network.GameApiInterface
 import com.dzikri.suwlitrockpaperscissor.data.network.WebSocketInstance
 import com.google.gson.Gson
@@ -82,6 +84,27 @@ class GameRepository @Inject constructor(
                 ResultOf.Failure(e.message, e)
             }
         }
+
+    suspend fun fetchTop100Players(): ResultOf<ResponseWrapper<List<RankData>>> =
+        withContext(Dispatchers.IO) {
+            try {
+                val res = gameApiClient.fetchTop100Players()
+                ResultOf.Success<ResponseWrapper<List<RankData>>>(res.body()!!)
+            } catch (e: Exception) {
+                ResultOf.Failure(e.message, e)
+            }
+        }
+
+    suspend fun fetchUserRankPosition(): ResultOf<ResponseWrapper<RankData>> =
+        withContext(Dispatchers.IO) {
+            try {
+                val res = gameApiClient.fetchUserRankPosition()
+                ResultOf.Success<ResponseWrapper<RankData>>(res.body()!!)
+            } catch (e: Exception) {
+                ResultOf.Failure(e.message, e)
+            }
+        }
+
 
 
 //    suspend fun simulateErrorCreateRoom(userId: String,token: String) {

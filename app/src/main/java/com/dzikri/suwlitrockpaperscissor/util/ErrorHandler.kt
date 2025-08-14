@@ -2,7 +2,7 @@ package com.dzikri.suwlitrockpaperscissor.util
 
 import android.util.Log
 import com.dzikri.suwlitrockpaperscissor.data.model.response.LoginResponse
-import com.dzikri.suwlitrockpaperscissor.data.model.RegisterResponse
+import com.dzikri.suwlitrockpaperscissor.data.model.response.RegisterResponse
 import com.dzikri.suwlitrockpaperscissor.data.model.ResultOf
 import com.google.gson.Gson
 import retrofit2.HttpException

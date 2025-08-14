@@ -3,7 +3,7 @@ package com.dzikri.suwlitrockpaperscissor.data.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dzikri.suwlitrockpaperscissor.data.model.InputFieldState
-import com.dzikri.suwlitrockpaperscissor.data.model.RegisterResponse
+import com.dzikri.suwlitrockpaperscissor.data.model.response.RegisterResponse
 import com.dzikri.suwlitrockpaperscissor.data.model.ResultOf
 import com.dzikri.suwlitrockpaperscissor.data.repository.UserRepository
 import com.dzikri.suwlitrockpaperscissor.util.ErrorHandler

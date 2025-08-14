@@ -9,5 +9,6 @@ data class RawMatchResult(
     val roundsPlayer1: Int,
     val roundsPlayer2: Int,
     val player1Username: String,
-    val player2Username: String
+    val player2Username: String,
+    val matchTime: String
 )
