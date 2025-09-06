@@ -70,13 +70,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.font.FontWeight
 import coil3.compose.AsyncImagePainter
 import coil3.request.ImageRequest
+import com.dzikri.suwlitrockpaperscissor.data.enums.GameMode
 import com.dzikri.suwlitrockpaperscissor.data.model.GameState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 
 @Composable
-fun GameScreen(navController: NavController,innerPaddingValues: PaddingValues,roomId: String?,viewModel: GameViewModel = hiltViewModel()) {
+fun GameScreen(navController: NavController,innerPaddingValues: PaddingValues,roomId: String?,viewModel: GameViewModel = hiltViewModel(),gameMode: String) {
 
     val roomStatus by viewModel.gameInitStatus.collectAsStateWithLifecycle()
     val timerCountDown = viewModel.gameStartTimerCount.collectAsStateWithLifecycle()
@@ -187,7 +188,8 @@ fun GameScreen(navController: NavController,innerPaddingValues: PaddingValues,ro
         if(roomId != null) {
             viewModel.joinRoom(roomId)
         } else {
-            viewModel.createRoom()
+            val gameModeInput = gameMode.let { GameMode.valueOf(it) }
+            viewModel.createRoom(gameModeInput)
         }
     }
 
@@ -226,13 +228,13 @@ fun GameScreen(navController: NavController,innerPaddingValues: PaddingValues,ro
                     modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp),
                     horizontalArrangement = Arrangement.Center,
                 ){
-                    PlayerButton(Move.Rock,{
+                    PlayerButton(Move.Rock, {
                         viewModel.setMove(Move.Rock)
                     })
-                    PlayerButton(Move.Paper,{
+                    PlayerButton(Move.Paper, {
                         viewModel.setMove(Move.Paper)
                     })
-                    PlayerButton(Move.Scissors,{
+                    PlayerButton(Move.Scissors, {
                         viewModel.setMove(Move.Scissors)
                     })
                 }

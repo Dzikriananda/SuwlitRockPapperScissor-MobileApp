@@ -3,6 +3,7 @@ package com.dzikri.suwlitrockpaperscissor.data.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.dzikri.suwlitrockpaperscissor.data.enums.GameMode
 import com.dzikri.suwlitrockpaperscissor.data.enums.Move
 import com.dzikri.suwlitrockpaperscissor.data.enums.RoundStatus
 import com.dzikri.suwlitrockpaperscissor.data.model.GameStartingStatus
@@ -45,6 +46,8 @@ class GameViewModel @Inject constructor(private val gameRepository: GameReposito
 
     private var _roomId = ""
 
+    private lateinit var gameMode: GameMode
+
     private var _gameStartTimerCount: MutableStateFlow<Int> = MutableStateFlow(5)
     val gameStartTimerCount: StateFlow<Int> = _gameStartTimerCount.asStateFlow()
 
@@ -62,17 +65,21 @@ class GameViewModel @Inject constructor(private val gameRepository: GameReposito
     private var _isAnimationShowing: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val isAnimationShowing: StateFlow<Boolean> = _isAnimationShowing.asStateFlow()
 
+    private var _userSelectedMove: MutableStateFlow<Move?> = MutableStateFlow(null)
+    val userSelectedMove: StateFlow<Move?> = _userSelectedMove.asStateFlow()
 
-
-   fun createRoom() {
+   fun createRoom(gameModeInput: GameMode?) {
         viewModelScope.launch {
+            if(gameModeInput!= null) {
+                gameMode = gameModeInput
+            }
             _gameInitStatus.value = ResultOf.Loading
             userID = userRepository.currentUserId.first()
             token = userRepository.currentToken.first()
             try{
                 gameRepository.setupWsConnection(userID,token)
                 subscribeToGameStartingStatus()
-                gameRepository.createRoom(userID)
+                gameRepository.createRoom(userID,gameMode)
             } catch (exception: Exception) {
                 Log.d("error while connecting ws",exception.toString())
                 val errResult = ErrorHandler.handleWsConnectionError(exception)
@@ -181,12 +188,8 @@ class GameViewModel @Inject constructor(private val gameRepository: GameReposito
                 enemyRoundsScore = entry.value
             }
         }
-        Log.d("setgametstate", gameStateResponse.playerLastMove.toString())
         val enemyMove = StringHelper.parseMove(gameStateResponse.playerLastMove.get(enemyId))
         val myMove = StringHelper.parseMove(gameStateResponse.playerLastMove.get(userID))
-        Log.d("setgametstate my move", myMove.toString())
-        Log.d("setgametstate enemy move", enemyMove.toString())
-
         val updatedState = _gameState.value.copy(
             enemyMove = enemyMove,
             enemyScore = enemyScore!!,
@@ -205,7 +208,7 @@ class GameViewModel @Inject constructor(private val gameRepository: GameReposito
 
     fun retry() {
         setInitStatusToStarted()
-        createRoom()
+        createRoom(null)
     }
 
     fun closeBetweenRoundDialog() {
@@ -285,19 +288,29 @@ class GameViewModel @Inject constructor(private val gameRepository: GameReposito
     }
 
     fun setMove(move: Move) {
+        //to ensure user has selected move or not
+        _userSelectedMove.value = move
+
         _gameState.value.myMove = move
     }
 
     fun sendMove() {
         viewModelScope.launch {
-            if(_gameState.value.myMove == null){
+            if(_userSelectedMove.value == null){
                 randomizeMove()
             }
             gameRepository.sendMove(userID,_roomId,_gameState.value.myMove!!)
+            clearMove()
+
         }
     }
 
+    fun clearMove() {
+        _userSelectedMove.value = null
+    }
+
     fun randomizeMove() {
+        Log.d("log", "randomize Move")
         val list = listOf(1,2,3)
         val randomNum = list.random()
         lateinit var randomMove: Move

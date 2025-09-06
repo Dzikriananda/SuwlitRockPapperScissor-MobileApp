@@ -22,7 +22,7 @@ import com.dzikri.suwlitrockpaperscissor.data.viewmodel.HomeViewModel
 import com.dzikri.suwlitrockpaperscissor.ui.theme.shimmerBackground
 
 @Composable
-fun TopGlobalComponent(viewModel: HomeViewModel) {
+fun TopGlobalComponent(viewModel: HomeViewModel,onNavigate: () -> Unit) {
 
     val thisPlayerUsername by viewModel.username.collectAsStateWithLifecycle()
     val topGlobalList = viewModel.leaderboardsRanks.collectAsStateWithLifecycle()
@@ -40,7 +40,7 @@ fun TopGlobalComponent(viewModel: HomeViewModel) {
                     TopGlobalItem(it.rank,it.username,null,it.score)
                 }
                 topGlobalDto.forEach {
-                        item -> TopGlobalInstance(item,thisPlayerUsername)
+                        item -> TopGlobalInstance(item,thisPlayerUsername,onNavigate)
                 }
 //                (topGlobalList.value as ResultOf.Success<List<RankData>>).value.forEach {
 //                        item -> TopGlobalInstance(item,thisPlayerUsername)

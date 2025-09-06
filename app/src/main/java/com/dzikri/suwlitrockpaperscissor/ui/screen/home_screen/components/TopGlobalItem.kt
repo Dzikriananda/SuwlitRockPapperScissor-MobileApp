@@ -28,7 +28,7 @@ import com.dzikri.suwlitrockpaperscissor.data.model.TopGlobalItem
 import com.dzikri.suwlitrockpaperscissor.ui.theme.lilitaOneFamily
 
 @Composable
-fun TopGlobalInstance(data: TopGlobalItem,thisPlayerUsername: String) {
+fun TopGlobalInstance(data: TopGlobalItem,thisPlayerUsername: String,onClicked: (() -> Unit)?) {
     val profile = painterResource(id = R.drawable.dummy_avatar)
     val isThisPlayer = thisPlayerUsername == data.username
 
@@ -47,7 +47,7 @@ fun TopGlobalInstance(data: TopGlobalItem,thisPlayerUsername: String) {
                 Modifier.clip(RoundedCornerShape(8.dp)).
                 background(Color(0XFFD27623)).
                 clickable(true, onClick = {
-                    //TODO NAVIGATE TO TOP GLOBAL PAGE
+                    onClicked!!.invoke()
                 })
             else Modifier
         )

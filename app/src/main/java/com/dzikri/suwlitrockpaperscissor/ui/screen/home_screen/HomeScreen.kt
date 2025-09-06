@@ -62,6 +62,7 @@ package com.dzikri.suwlitrockpaperscissor.ui.screen.home_screen
     import androidx.navigation.NavController
     import com.dzikri.suwlitrockpaperscissor.R
     import com.dzikri.suwlitrockpaperscissor.data.enums.GameMode
+    import com.dzikri.suwlitrockpaperscissor.data.model.RankData
     import com.dzikri.suwlitrockpaperscissor.data.model.response.IsRoomExistResponse
     import com.dzikri.suwlitrockpaperscissor.data.model.ResultOf
     import com.dzikri.suwlitrockpaperscissor.data.viewmodel.HomeViewModel
@@ -82,7 +83,7 @@ package com.dzikri.suwlitrockpaperscissor.ui.screen.home_screen
             if(isRoomExistStatus is ResultOf.Success){
                 if((isRoomExistStatus as ResultOf.Success<IsRoomExistResponse>).value.exist){
                     viewModel.resetIsRoomExist()
-                    navController.navigate(route = Screen.Game.route + "?roomId=${viewModel.roomIdInput.value.text}")
+                    navController.navigate(route = Screen.Game.route + "?roomId=${viewModel.roomIdInput.value.text}&gameMode=MULTIPLAYER")
                 }
             }
         }
@@ -98,22 +99,28 @@ package com.dzikri.suwlitrockpaperscissor.ui.screen.home_screen
             ){
                 TopComponent(viewModel = viewModel, navController = navController)
                 PlayComponent(viewModel = viewModel,navController = navController)
-                TutorialButton()
+                TutorialButton(navController = navController)
                 MatchHistoryButton(navController = navController)
-                TopGlobalComponent(viewModel = viewModel)
+                TopGlobalComponent(viewModel = viewModel,onNavigate = {
+                    navController.currentBackStackEntry?.savedStateHandle?.set("data", viewModel.topGlobalData)
+                    navController.currentBackStackEntry?.savedStateHandle?.set("username",viewModel.username.value )
+                    navController.navigate(Screen.TopGlobal.route)
+                })
             }
         }
     }
 
 @Composable
-fun TutorialButton() {
+fun TutorialButton(navController: NavController) {
     Box(modifier = Modifier
         .padding(horizontal = 0.dp, vertical = 5.dp)
         .height(60.dp)
         .fillMaxWidth()
         .clip(RoundedCornerShape(16.dp))
         .background(Color.White)
-        .clickable(true, onClick = {})
+        .clickable(true, onClick = {
+            navController.navigate(Screen.Tutorial.route)
+        })
     ) {
         Row (
             horizontalArrangement = Arrangement.Start,
@@ -244,8 +251,8 @@ fun MatchHistoryButton(navController: NavController) {
                 flingBehavior = PagerDefaults.flingBehavior(state = pagerState),
             ) { page ->
                 when (page) {
-                    0 -> PlayComponentOption(viewModel = viewModel,gameMode = GameMode.Multiplayer,navController = navController)
-                    1 -> PlayComponentOption(viewModel = viewModel,gameMode = GameMode.VsBot, navController = navController)
+                    0 -> PlayComponentOption(viewModel = viewModel,gameMode = GameMode.MULTIPLAYER,navController = navController)
+                    1 -> PlayComponentOption(viewModel = viewModel,gameMode = GameMode.VSBOT, navController = navController)
                 }
             }
             Row(
@@ -279,16 +286,10 @@ fun MatchHistoryButton(navController: NavController) {
 
         val scope = rememberCoroutineScope()
         var showBottomSheet by remember { mutableStateOf(false) }
-        val player2: String = if (gameMode == GameMode.Multiplayer) "Player 2" else "Bot"
-        val buttonText: String = if (gameMode == GameMode.Multiplayer) "Multiplayer" else "Vs Bot"
+        val player2: String = if (gameMode == GameMode.MULTIPLAYER) "Player 2" else "Bot"
+        val buttonText: String = if (gameMode == GameMode.MULTIPLAYER) "Multiplayer" else "Vs Bot"
 
         fun closeBottomSheet() {
-//            if(!isJoiningRoom.value) {
-//                scope.launch {
-//                    sheetState.hide()
-//                    showBottomSheet = false
-//                }
-//            }
             scope.launch {
                 sheetState.hide()
                 showBottomSheet = false
@@ -314,7 +315,7 @@ fun MatchHistoryButton(navController: NavController) {
                     IconButton(onClick = { closeBottomSheet() }) {
                         Icon(painter = painterResource(R.drawable.close_button),contentDescription = "close button")
                     }
-                    if(gameMode == GameMode.Multiplayer) MultiplayerModalComponent(viewModel = viewModel, navController = navController,onJoin = { closeBottomSheet() }) else VsBotModalComponent()
+                    if(gameMode == GameMode.MULTIPLAYER) MultiplayerModalComponent(viewModel = viewModel, navController = navController,onJoin = { closeBottomSheet() }) else VsBotModalComponent(navController = navController)
 
 
                 }
@@ -501,7 +502,7 @@ fun MultiplayerModalComponent(viewModel: HomeViewModel,navController: NavControl
             onClick = {
 //                viewModel.joinRoom()
                 onJoin.invoke()
-                navController.navigate(route = Screen.Game.route)
+                navController.navigate(route = Screen.Game.route + "?gameMode=MULTIPLAYER")
 
             },
             shape = RoundedCornerShape(8.dp),
@@ -577,7 +578,7 @@ fun MultiplayerModalComponent(viewModel: HomeViewModel,navController: NavControl
 
 
     @Composable
-    fun VsBotModalComponent() {
+    fun VsBotModalComponent(navController: NavController) {
         Column(
             modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -592,7 +593,7 @@ fun MultiplayerModalComponent(viewModel: HomeViewModel,navController: NavControl
             Spacer(modifier = Modifier.height(20.dp))
             Button(
                 onClick = {
-
+                    navController.navigate(route = Screen.Game.route + "?gameMode=VSBOT")
                 },
                 shape = RoundedCornerShape(8.dp),
                 modifier = Modifier.fillMaxWidth(),

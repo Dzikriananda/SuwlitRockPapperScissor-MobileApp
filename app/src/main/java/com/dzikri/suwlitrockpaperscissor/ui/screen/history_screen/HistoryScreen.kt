@@ -86,6 +86,7 @@ fun HistoryScreen(navController: NavController,innerPaddingValues: PaddingValues
     LaunchedEffect(true) {
         viewModel.fetchMatchHistory()
     }
+    val profile = painterResource(id = R.drawable.dummy_avatar)
 
 
     Box(
@@ -96,11 +97,16 @@ fun HistoryScreen(navController: NavController,innerPaddingValues: PaddingValues
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.fillMaxSize()
         ){
-            Spacer(modifier = Modifier.fillMaxHeight(0.2f))
+            Spacer(modifier = Modifier.height(30.dp))
+            Image(
+                painter = profile,
+                contentDescription = "dummy avatar",
+                modifier = Modifier.size(100.dp),
+            )
             Text(
                 text = "MATCH HISTORY",
                 style = TextStyle(fontSize = 44.sp, fontFamily = lilitaOneFamily, color = Color.White),
-                textAlign = TextAlign.Center,
+                textAlign = TextAlign.Center
             )
            Box(
                modifier = Modifier.clip(RoundedCornerShape(15.dp,15.dp,0.dp,0.dp)).background(Color.White).fillMaxHeight().fillMaxWidth()
@@ -137,8 +143,7 @@ fun EmptyList() {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .fillMaxHeight(0.5f)
-            ,
+                .fillMaxHeight(0.5f),
             contentAlignment = Alignment.Center
         ) {
             Image(
@@ -263,13 +268,6 @@ fun HistoryItem(data: MatchResult) {
         else -> Icons.Filled.ThumbUp
     }
 
-//    if(openAlertDialog.value) {
-//        HistoryDetailDialog(
-//            onDismissRequest = { openAlertDialog.value = false },
-//            data
-//        )
-//    }
-
     if (showBottomSheet) {
         ModalBottomSheet(
             onDismissRequest = {
@@ -308,11 +306,6 @@ fun HistoryItem(data: MatchResult) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.wrapContentHeight()
             ){
-//                Text("Match Details", style = TextStyle(
-//                    fontSize = 20.sp,
-//                    fontWeight = FontWeight.Normal,
-//                    fontFamily = lilitaOneFamily)
-//                )
                 Spacer(modifier = Modifier.height(10.dp))
                 Row(
                     verticalAlignment = Alignment.CenterVertically,

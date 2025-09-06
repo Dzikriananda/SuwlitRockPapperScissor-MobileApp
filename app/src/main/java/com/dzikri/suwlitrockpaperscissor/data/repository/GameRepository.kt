@@ -1,6 +1,7 @@
 package com.dzikri.suwlitrockpaperscissor.data.repository
 
 import android.util.Log
+import com.dzikri.suwlitrockpaperscissor.data.enums.GameMode
 import com.dzikri.suwlitrockpaperscissor.data.enums.Move
 import com.dzikri.suwlitrockpaperscissor.data.model.RankData
 import com.dzikri.suwlitrockpaperscissor.data.model.ResultOf
@@ -22,6 +23,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import retrofit2.Response
+import kotlin.toString
 
 class GameRepository @Inject constructor(
     private val webSocketInstance: WebSocketInstance,
@@ -40,9 +42,9 @@ class GameRepository @Inject constructor(
     }
 
 
-    suspend fun createRoom(userId: String) {
+    suspend fun createRoom(userId: String,gameMode: GameMode) {
         Log.d("game repo","creating room")
-        val payload = mapOf<String, String>("userId" to userId)
+        val payload = mapOf<String, String>("userId" to userId,"gameMode" to gameMode.toString())
         val body = Gson().toJson(payload).toString()
         session?.sendText(destination = "/app/join-room", body = body).toString()
     }

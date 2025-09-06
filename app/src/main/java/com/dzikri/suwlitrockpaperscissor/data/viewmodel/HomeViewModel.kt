@@ -40,6 +40,9 @@ class HomeViewModel @Inject constructor(
 
     private var _userRankPosition: ResultOf<ResponseWrapper<RankData>> = ResultOf.Started
 
+    private var _topGlobalData : MutableList<RankData> = mutableListOf()
+    val topGlobalData: MutableList<RankData> = _topGlobalData
+
 
     private val _isRoomExist: MutableStateFlow<ResultOf<IsRoomExistResponse>> = MutableStateFlow(
         ResultOf.Started)
@@ -79,15 +82,25 @@ class HomeViewModel @Inject constructor(
             top100PlayersJob.join()
 
             if(_userRankPosition is ResultOf.Success && _top100Players is ResultOf.Success) {
-                val userRank = (_userRankPosition as ResultOf.Success<ResponseWrapper<RankData>>).value.data.rank
+                var userRank = (_userRankPosition as ResultOf.Success<ResponseWrapper<RankData>>).value.data
+                if(userRank == null) {
+                    val userId = userRepository.currentUserId.first()
+                    val userName = userRepository.currentUsername.first()
+                    userRank = RankData(userId,userName,0,0)
+                }
                 val top100PlayersData = ResultOf.Success((_top100Players as ResultOf.Success<ResponseWrapper<List<RankData>>>))
-                if( userRank <= 4 && userRank != 0 ) {
-                    _leaderboardsRanks.value = ResultOf.Success(top100PlayersData.value.value.data.take(4))
+                _topGlobalData.addAll(top100PlayersData.value.value.data!!)
+
+                if( userRank.rank <= 4 && userRank.rank != 0 ) {
+                    _leaderboardsRanks.value = ResultOf.Success(top100PlayersData.value.value.data!!.take(4))
+
                 } else {
-                    var tempList = top100PlayersData.value.value.data.take(3).toMutableList()
-                    val userRank = (_userRankPosition as ResultOf.Success<ResponseWrapper<RankData>>).value.data
+                    var tempList = top100PlayersData.value.value.data!!.take(3).toMutableList()
                     tempList.add(userRank)
                     _leaderboardsRanks.value = ResultOf.Success(tempList)
+                }
+                if(userRank.rank > 100){
+                    _topGlobalData.add(userRank)
                 }
             } else {
                 _leaderboardsRanks.value = ResultOf.Failure("An Error Has Occured, Please Try Again",Exception())
