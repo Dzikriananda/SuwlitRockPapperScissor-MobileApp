@@ -19,6 +19,10 @@ class UserRepository @Inject constructor(
         apiService.login(body)
     }
 
+    suspend fun loginWithGoogle(body: Map<String, String>): Response<LoginResponse> = withContext(Dispatchers.IO) {
+        apiService.loginWithGoogle(body)
+    }
+
     suspend fun register(body: Map<String, String>): Response<RegisterResponse> = withContext(Dispatchers.IO) {
         apiService.register(body)
     }

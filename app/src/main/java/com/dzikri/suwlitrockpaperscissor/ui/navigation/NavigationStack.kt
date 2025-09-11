@@ -1,6 +1,8 @@
 package com.dzikri.suwlitrockpaperscissor
 
 // NavigationStack.kt
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -21,6 +23,7 @@ import com.dzikri.suwlitrockpaperscissor.ui.screen.TutorialScreen
 import com.dzikri.suwlitrockpaperscissor.ui.screen.history_screen.HistoryScreen
 import com.dzikri.suwlitrockpaperscissor.ui.screen.top_global_screen.TopGlobalScreen
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun NavigationStack(modifier: Modifier = Modifier,innerPaddingValues: PaddingValues) {
     val navController = rememberNavController()

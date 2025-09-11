@@ -10,6 +10,9 @@ interface UserApiInterface {
     @POST("api/auth/login")
     suspend fun login(@Body body: Map<String, String>): Response<LoginResponse>
 
+    @POST("api/auth/google-login")
+    suspend fun loginWithGoogle(@Body body: Map<String, String>): Response<LoginResponse>
+
     @POST("api/auth/register")
     suspend fun register(@Body body: Map<String, String>): Response<RegisterResponse>
 }

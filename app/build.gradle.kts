@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -5,6 +7,7 @@ plugins {
     id("com.google.dagger.hilt.android")
     id("com.google.devtools.ksp")
     id("kotlin-parcelize")
+    alias(libs.plugins.google.gms.google.services)
 
 }
 
@@ -20,6 +23,20 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+
+        val keystoreFile = project.rootProject.file("apikeys.properties")
+        val properties = Properties()
+        properties.load(keystoreFile.inputStream())
+        val firebaseApiWebClientId = properties.getProperty("FIREBASE_AUTH_WEBCLIENT_ID") ?: ""
+
+        buildConfigField(
+            type = "String",
+            name = "FIREBASE_AUTH_WEBCLIENT_ID",
+            value = firebaseApiWebClientId
+        )
+
+
     }
 
     buildTypes {
@@ -50,6 +67,10 @@ dependencies {
     implementation("org.hildan.krossbow:krossbow-stomp-core:7.0.0")
     implementation("org.hildan.krossbow:krossbow-websocket-builtin:7.0.0")
     implementation("org.hildan.krossbow:krossbow-websocket-okhttp:7.0.0")
+    implementation(libs.firebase.auth)
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services.auth)
+    implementation(libs.googleid)
 
 
     val hiltVersion = "2.56"

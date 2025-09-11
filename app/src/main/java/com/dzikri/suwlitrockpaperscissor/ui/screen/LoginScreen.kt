@@ -8,6 +8,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -37,11 +38,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.dzikri.suwlitrockpaperscissor.R
 import com.dzikri.suwlitrockpaperscissor.data.model.ResultOf
@@ -56,21 +59,51 @@ fun LoginScreen(navController: NavController,viewModel: LoginViewModel = hiltVie
 
     val username by viewModel.usernameOrEmailInput.collectAsState()
     val password by viewModel.passwordInput.collectAsState()
-    val loginState by viewModel.loginResponse.collectAsState()
+    val loginByEmailPasswordState by viewModel.loginResponse.collectAsState()
+    val loginByGoogleState by viewModel.loginWithGoogleResponse.collectAsStateWithLifecycle()
+    val isNowSigningIn by viewModel.isInSignInAttempt.collectAsStateWithLifecycle()
+    val context = LocalContext.current
 
-    if(loginState is ResultOf.Failure){
+    val displayMetrics = context.resources.displayMetrics
+
+    // Width and height of screen
+    val width = displayMetrics.widthPixels
+    val height = displayMetrics.heightPixels
+
+    LaunchedEffect(Unit) {
+        Log.d("Height : ", height.toString())
+        Log.d("Width : ", width.toString())
+    }
+
+    if(loginByEmailPasswordState is ResultOf.Failure){
         ShowAlertDialog(
             onClick = {viewModel.dismissAlertDialog()},
-            message = (loginState as ResultOf.Failure).message ?: "Something went wrong"
+            message = (loginByEmailPasswordState as ResultOf.Failure).message ?: "Something went wrong"
         )
     }
 
-    LaunchedEffect(loginState) {
-        if(loginState is ResultOf.Success){
+    LaunchedEffect(loginByEmailPasswordState) {
+        if(loginByEmailPasswordState is ResultOf.Success){
             viewModel.resetLoginState()
             navController.navigate(route = Screen.Home.route)
         }
     }
+
+    if(loginByGoogleState is ResultOf.Failure){
+        ShowAlertDialog(
+            onClick = {viewModel.dismissAlertDialog()},
+            message = (loginByGoogleState as ResultOf.Failure).message ?: "Something went wrong"
+        )
+    }
+
+    LaunchedEffect(loginByGoogleState) {
+        if(loginByGoogleState is ResultOf.Success){
+            viewModel.resetLoginState()
+            navController.navigate(route = Screen.Home.route)
+        }
+    }
+
+
 
     Box(
         modifier = Modifier.fillMaxSize()
@@ -84,7 +117,7 @@ fun LoginScreen(navController: NavController,viewModel: LoginViewModel = hiltVie
             fontSize = 70.sp,
             modifier = Modifier
                 .align(Alignment.TopCenter)
-                .padding(0.dp, 80.dp, 0.dp, 0.dp)
+                .padding(0.dp, (height * 0.035).dp, 0.dp, 0.dp)
         )
         Box(
             modifier = Modifier
@@ -97,13 +130,13 @@ fun LoginScreen(navController: NavController,viewModel: LoginViewModel = hiltVie
                    contentDescription = "Logo",
                    contentScale = ContentScale.Crop,
                    modifier = Modifier
-                       .size(200.dp)
+                       .size((height * 0.09).dp) //Originally 200.dp
                        .offset(y = (10).dp)
                )
                Box(
                    modifier = Modifier
                        .fillMaxWidth()
-                       .height(450.dp)
+                       .fillMaxHeight(0.75f)
                        .clip(RoundedCornerShape(15.dp, 15.dp, 0.dp, 0.dp))
                        .background(Color.White)
                        .padding(horizontal = 30.dp)
@@ -155,10 +188,10 @@ fun LoginScreen(navController: NavController,viewModel: LoginViewModel = hiltVie
                           },
                           isPassword = true
                       )
-                      Spacer(modifier = Modifier.height(40.dp))
+                      Spacer(modifier = Modifier.height(30.dp))
                       Button(
                           onClick = {
-                              if(loginState != ResultOf.Loading){
+                              if(!isNowSigningIn){
                                   viewModel.login()
                               }
                           },
@@ -168,7 +201,7 @@ fun LoginScreen(navController: NavController,viewModel: LoginViewModel = hiltVie
                               .height(45.dp),
                           colors = ButtonDefaults.buttonColors(containerColor = Color(0XFF2395d2))
                       ) {
-                          if(loginState == ResultOf.Loading){
+                          if(loginByEmailPasswordState == ResultOf.Loading){
                               CircularProgressIndicator(
                                   modifier = Modifier.width(30.dp),
                                   color = MaterialTheme.colorScheme.secondary,
@@ -178,6 +211,35 @@ fun LoginScreen(navController: NavController,viewModel: LoginViewModel = hiltVie
                               Text("Sign In")
                           }
                       }
+                      Spacer(modifier = Modifier.height(10.dp))
+                      Button(
+                          onClick = {
+                              if(!isNowSigningIn) {
+                                  viewModel.loginWithGoogle(context = context)
+                              }
+                          },
+                          modifier = Modifier
+                              .fillMaxWidth()
+                              .height(45.dp)
+                              .border( width = 2.dp,
+                                  color = Color(0XFF2395d2),
+                                  shape = RoundedCornerShape(8.dp)),
+                          colors = ButtonDefaults.buttonColors(containerColor = Color.White)
+                      ) {
+                          if(loginByGoogleState == ResultOf.Loading){
+                              CircularProgressIndicator(
+                                  modifier = Modifier.width(30.dp),
+                                  color = MaterialTheme.colorScheme.secondary,
+                                  trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                              )
+                          } else {
+                              Image(
+                                  painter = painterResource(R.drawable.google_icon),
+                                  contentDescription = "background",
+                                  modifier = Modifier.height(40.dp)
+                              )
+                              Text("Sign in with Google", color = Color(0XFF2395d2))                          }
+                      }
                       Spacer(modifier = Modifier.height(20.dp))
                       Text(
                           text = "Create a New Account",
@@ -186,7 +248,7 @@ fun LoginScreen(navController: NavController,viewModel: LoginViewModel = hiltVie
                           modifier = Modifier
                               .align(Alignment.CenterHorizontally)
                               .clickable {
-                                  if(loginState != ResultOf.Loading){
+                                  if(!isNowSigningIn){
                                       navController.navigate(route = Screen.Register.route)
                                   }
                               }

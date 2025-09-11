@@ -1,6 +1,8 @@
 package com.dzikri.suwlitrockpaperscissor.data.viewmodel
 
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dzikri.suwlitrockpaperscissor.data.model.MatchResult
@@ -26,6 +28,7 @@ class HistoryScreenViewModel @Inject constructor(
     val matchHistory: StateFlow<ResultOf<List<MatchResult>>> = _matchHistory.asStateFlow()
 
 
+    @RequiresApi(Build.VERSION_CODES.O)
     fun fetchMatchHistory() {
         viewModelScope.launch {
             _matchHistory.value = ResultOf.Loading
