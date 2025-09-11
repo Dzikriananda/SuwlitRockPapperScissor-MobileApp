@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "301092230611",
+    "project_id": "suwlit-auth",
+    "storage_bucket": "suwlit-auth.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:301092230611:android:c043ac1126d20158548b26",
+        "android_client_info": {
+          "package_name": "com.dzikri.suwlitrockpaperscissor"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "301092230611-o2andtlt765rrmab237llrh04uu1eg01.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.dzikri.suwlitrockpaperscissor",
+            "certificate_hash": "3fb9ca52d1fce43f1730149ae86592e17a39491a"
+          }
+        },
+        {
+          "client_id": "301092230611-lq33d3h3v6e1brgp8aphpf3eoc17ngld.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDZhunAnHCRgUHNmUcWsbYTZ6btjNQ1Foo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "301092230611-lq33d3h3v6e1brgp8aphpf3eoc17ngld.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
