@@ -1,11 +1,15 @@
 package com.dzikri.suwlitrockpaperscissor.ui.screen
 
+import android.annotation.SuppressLint
 import android.util.Log
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -29,6 +33,9 @@ import androidx.compose.material3.Icon
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
+import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -54,6 +61,8 @@ import com.dzikri.suwlitrockpaperscissor.ui.theme.lilitaOneFamily
 import com.dzikri.suwlitrockpaperscissor.ui.component.CustomTextField
 import com.dzikri.suwlitrockpaperscissor.ui.navigation.Screen
 
+@SuppressLint("UnusedBoxWithConstraintsScope")
+@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Composable
 fun LoginScreen(navController: NavController,viewModel: LoginViewModel = hiltViewModel() ) {
 
@@ -125,14 +134,30 @@ fun LoginScreen(navController: NavController,viewModel: LoginViewModel = hiltVie
                 .padding(horizontal = 25.dp)
         ) {
            Column {
-               Image(
-                   painter = painterResource(id = R.drawable.logo_no_text),
-                   contentDescription = "Logo",
-                   contentScale = ContentScale.Crop,
-                   modifier = Modifier
-                       .size((height * 0.09).dp) //Originally 200.dp
-                       .offset(y = (10).dp)
-               )
+//               Image(
+//                   painter = painterResource(id = R.drawable.logo_no_text),
+//                   contentDescription = "Logo",
+//                   contentScale = ContentScale.Crop,
+//                   modifier = Modifier
+//                       .size((height * 0.09).dp) //Originally 200.dp
+//                       .offset(y = (10).dp)
+//               )
+               BoxWithConstraints {
+                   val baseSize = if (maxWidth < maxHeight) maxWidth else maxHeight
+                   val logoSize = (maxHeight * 0.2f).coerceIn(100.dp, 200.dp)
+                   Log.d("logo size",logoSize.toString())
+                   Log.d("height",maxHeight.toString())
+                   Log.d("width",maxWidth.toString())
+
+                   Image(
+                       painter = painterResource(id = R.drawable.logo_no_text),
+                       contentDescription = "Logo",
+                       modifier = Modifier
+                           .size(logoSize)
+                           .offset(y = 10.dp),
+                       contentScale = ContentScale.Crop
+                   )
+               }
                Box(
                    modifier = Modifier
                        .fillMaxWidth()

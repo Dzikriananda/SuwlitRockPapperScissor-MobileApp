@@ -71,6 +71,7 @@ dependencies {
     implementation(libs.androidx.credentials)
     implementation(libs.androidx.credentials.play.services.auth)
     implementation(libs.googleid)
+    implementation(libs.androidx.material3.window.size.class1.android)
 
 
     val hiltVersion = "2.56"
